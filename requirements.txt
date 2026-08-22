@@ -1,0 +1,3 @@
+requests
+langchain-google-genai
+duckduckgo-search
