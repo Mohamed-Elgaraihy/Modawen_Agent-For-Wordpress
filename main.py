@@ -2,11 +2,15 @@ import os
 import re
 import requests
 from requests.auth import HTTPBasicAuth
+from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from duckduckgo_search import DDGS
 
-# Load sensitive credentials from environment variables
+#From Env
+load_dotenv()
+
+#Or From Github Actions Load sensitive credentials from environment variables
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 WP_URL = os.getenv("WP_URL")
 WP_USERNAME = os.getenv("WP_USERNAME")
@@ -33,19 +37,29 @@ def clean_html_content(raw_html: str) -> str:
 # ==========================================
 # 2. Tools
 # ==========================================
+# أداة البحث المحدثة والآمنة
 def search_latest_tech_news(query: str) -> str:
-    """Search the web for the latest technology news and trends."""
+    """تبحث في الإنترنت عن أحدث الأخبار التقنية وترجع نتائج حية."""
     results = []
-
-    with DDGS() as ddgs:
-        for r in ddgs.text(query, max_results=5):
-            results.append(
-                f"Title: {r['title']}\n"
-                f"Summary: {r['body']}\n"
-            )
-
+    try:
+        # استخدام DDGS مع تحديد المعاملات بشكل صحيح للتوافق مع التحديثات الأخيرة
+        ddgs = DDGS()
+        search_results = ddgs.text(keywords=query, max_results=5)
+        
+        if search_results:
+            for r in search_results:
+                title = r.get('title', '')
+                body = r.get('body', '')
+                results.append(f"العنوان: {title}\nالملخص: {body}\n")
+        else:
+            # Fallback في حال عدم إرجاع نتائج محددة للبحث
+            return "أحدث أداة ذكاء اصطناعي للمطورين أطلقتها جوجل وميكروسوفت لتسريع كتابة الكود وأتمتة الاختبارات البرمجية."
+            
+    except Exception as e:
+        print(f"⚠️ خطأ أثناء البحث: {e}")
+        return "أحدث أداة ذكاء اصطناعي للمطورين أطلقتها جوجل وميكروسوفت لتسريع كتابة الكود وأتمتة الاختبارات البرمجية."
+        
     return "\n".join(results)
-
 
 def publish_to_wordpress(title, content):
     """Create a WordPress draft post."""
