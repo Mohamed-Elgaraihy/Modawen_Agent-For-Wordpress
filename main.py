@@ -5,7 +5,8 @@ from requests.auth import HTTPBasicAuth
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
-from duckduckgo_search import DDGS
+#from duckduckgo_search import DDGS
+from googlesearch import search
 
 #From Env
 load_dotenv()
@@ -39,27 +40,26 @@ def clean_html_content(raw_html: str) -> str:
 # ==========================================
 # أداة البحث المحدثة والآمنة
 def search_latest_tech_news(query: str) -> str:
-    """تبحث في الإنترنت عن أحدث الأخبار التقنية وترجع نتائج حية."""
+    """تبحث في الإنترنت ديناميكياً عن أي موضوع يطلبه الأيجنت وترجع نتائج حية."""
     results = []
     try:
-        # استخدام DDGS مع تحديد المعاملات بشكل صحيح للتوافق مع التحديثات الأخيرة
-        ddgs = DDGS()
-        search_results = ddgs.text(keywords=query, max_results=5)
+        # البحث في جوجل عن الـ query المطلوبة من الأيجنت مباشرة
+        search_results = search(query, num_results=5, advanced=True)
         
-        if search_results:
-            for r in search_results:
-                title = r.get('title', '')
-                body = r.get('body', '')
-                results.append(f"العنوان: {title}\nالملخص: {body}\n")
-        else:
-            # Fallback في حال عدم إرجاع نتائج محددة للبحث
-            return "أحدث أداة ذكاء اصطناعي للمطورين أطلقتها جوجل وميكروسوفت لتسريع كتابة الكود وأتمتة الاختبارات البرمجية."
+        for r in search_results:
+            results.append(f"العنوان: {r.title}\nالملخص: {r.description}\nالرابط: {r.url}\n")
+            
+        final_text = "\n".join(results)
+        
+        if final_text.strip():
+            return final_text
             
     except Exception as e:
         print(f"⚠️ خطأ أثناء البحث: {e}")
-        return "أحدث أداة ذكاء اصطناعي للمطورين أطلقتها جوجل وميكروسوفت لتسريع كتابة الكود وأتمتة الاختبارات البرمجية."
-        
-    return "\n".join(results)
+
+    # لو حصل أي مشكلة في النت، يطلب من الموديل توليد أفكار حول نفس الـ query المطلوبة
+    fallback_prompt = f"اكتب ملخصاً لأحدث التطورات والتريندات الحالية المتعلقة بـ: {query}"
+    return llm.invoke(fallback_prompt).content
 
 def publish_to_wordpress(title, content):
     """Create a WordPress draft post."""

@@ -1,4 +1,4 @@
 requests
 langchain-google-genai
-duckduckgo-search
+googlesearch-python
 python-dotenv
