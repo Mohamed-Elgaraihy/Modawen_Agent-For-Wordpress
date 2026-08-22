@@ -1,0 +1,40 @@
+name: Auto Tech Post Publisher
+
+on:
+  schedule:
+    # Run the publisher every 5 minutes
+    - cron: '*/5 * * * *'
+
+  # Allow manual execution from GitHub Actions
+  workflow_dispatch:
+
+jobs:
+  run-publisher:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Check out the repository
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      # Set up Python environment
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      # Install Python dependencies
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # Run the AI-powered technology researcher, Arabic article writer,
+      # SEO title generator, and WordPress publisher
+      - name: Run Auto Publisher
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          WP_URL: ${{ secrets.WP_URL }}
+          WP_USERNAME: ${{ secrets.WP_USERNAME }}
+          WP_APP_PASSWORD: ${{ secrets.WP_APP_PASSWORD }}
+        run: python main.py
