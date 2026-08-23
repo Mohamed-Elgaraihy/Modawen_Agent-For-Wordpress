@@ -1,314 +1,48 @@
-import os
-import re
-import requests
-from requests.auth import HTTPBasicAuth
-from dotenv import load_dotenv
-from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.prompts import ChatPromptTemplate
-from googlesearch import search
+from config import logger, DEFAULT_TOPIC
+from agents import search_latest_tech_news, researcher_chain, writer_chain, seo_chain
+from utils import publish_to_wordpress
 
-# Load environment variables
-load_dotenv()
+def run_agent_pipeline():
+    """Run the complete Modawen agent pipeline."""
+    if not researcher_chain or not writer_chain or not seo_chain:
+        logger.error("Agents are not initialized correctly. Please check your GEMINI_API_KEY.")
+        return
 
-# Load sensitive credentials from environment variables
-# This also works with GitHub Actions environment variables
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
-WP_URL = os.getenv("WP_URL")
-WP_USERNAME = os.getenv("WP_USERNAME")
-WP_APP_PASSWORD = os.getenv("WP_APP_PASSWORD")
+    logger.info("🔍 Agent 1 (Researcher): Searching for the latest technology trends...")
+    live_data = search_latest_tech_news(DEFAULT_TOPIC)
+    
+    if not live_data:
+        logger.error("No data retrieved from search or fallback. Exiting pipeline.")
+        return
 
-os.environ["GEMINI_API_KEY"] = GEMINI_API_KEY
-
-llm = ChatGoogleGenerativeAI(
-    model="gemini-2.5-flash",
-    google_api_key=GEMINI_API_KEY
-)
-
-
-# ==========================================
-# 1. Content Cleaning
-# ==========================================
-def clean_html_content(raw_html: str) -> str:
-    """Remove unnecessary Markdown code fences from generated HTML."""
-    clean_text = re.sub(r"^```html\s*", "", raw_html, flags=re.MULTILINE)
-    clean_text = re.sub(r"^```\s*", "", clean_text, flags=re.MULTILINE)
-    return clean_text.strip()
-
-
-# ==========================================
-# 2. Tools
-# ==========================================
-def search_latest_tech_news(query: str) -> str:
-    """Search Google dynamically for live information related to the given query."""
-    results = []
-
+    logger.info("💡 Agent 1: Analyzing search results and extracting the main trend...")
     try:
-        # Search Google using the query provided by the AI agent
-        search_results = search(
-            query,
-            num_results=5,
-            advanced=True
-        )
-
-        for r in search_results:
-            results.append(
-                f"Title: {r.title}\n"
-                f"Summary: {r.description}\n"
-                f"URL: {r.url}\n"
-            )
-
-        final_text = "\n".join(results)
-
-        if final_text.strip():
-            return final_text
-
+        trend_summary = researcher_chain.invoke({"search_results": live_data}).content
     except Exception as e:
-        print(f"⚠️ Search error: {e}")
+        logger.error(f"Researcher agent failed: {e}")
+        return
 
-    # If the web search fails, ask the AI model to provide
-    # a general summary related to the same topic
-    fallback_prompt = (
-        f"Provide a general summary of the latest developments "
-        f"and trends related to: {query}"
-    )
+    logger.info("🤖 Agent 2 (Writer): Writing the Arabic article...")
+    try:
+        article_content = writer_chain.invoke({"trend_summary": trend_summary}).content
+    except Exception as e:
+        logger.error(f"Writer agent failed: {e}")
+        return
 
-    return llm.invoke(fallback_prompt).content
+    logger.info("🤖 Agent 3 (SEO Expert): Generating the Arabic SEO title...")
+    try:
+        article_title = seo_chain.invoke({"content": article_content}).content
+    except Exception as e:
+        logger.error(f"SEO agent failed: {e}")
+        return
 
+    logger.info("🚀 Publishing the article as a WordPress draft...")
+    result = publish_to_wordpress(article_title, article_content)
+    
+    logger.info(f"✅ Final result: {result}")
+    print(f"\n✅ Final result: {result}")
 
-def publish_to_wordpress(title, content):
-    """Create a WordPress draft post."""
-    api_url = f"{WP_URL}/wp-json/wp/v2/posts"
-
-    # Clean generated content and title before publishing
-    clean_content = clean_html_content(content)
-    clean_title = clean_html_content(title).replace('"', '')
-
-    payload = {
-        "title": clean_title,
-        "content": clean_content,
-        "status": "draft"
-    }
-
-    response = requests.post(
-        api_url,
-        json=payload,
-        auth=HTTPBasicAuth(WP_USERNAME, WP_APP_PASSWORD)
-    )
-
-    if response.status_code == 201:
-        return (
-            f"Success! Created draft with ID: "
-            f"{response.json().get('id')}"
-        )
-
-    return f"Failed: {response.status_code} - {response.text}"
-
-
-# ==========================================
-# 3. AI Agents
-# ==========================================
-
-# Agent 1: Technology Researcher
-researcher_prompt = ChatPromptTemplate.from_messages([
-    (
-        "system",
-        """
-        You are an expert technology researcher.
-
-        Analyze the live search results and identify the most relevant
-        and interesting recent technology trend for developers.
-
-        Focus on topics such as:
-        - Artificial Intelligence
-        - AI coding tools
-        - Software engineering
-        - Web development
-        - Programming
-        - Developer tools
-        - SaaS
-        - Automation
-        - New AI models and technologies
-
-        Extract the key facts, important developments, and useful insights.
-
-        IMPORTANT:
-        - Analyze the sources carefully.
-        - Do not invent information.
-        - Return the research summary in ENGLISH.
-        - Do not write the final article.
-        """
-    ),
-    (
-        "human",
-        """
-        Live search results:
-
-        {search_results}
-        """
-    )
-])
-
-researcher_chain = researcher_prompt | llm
-
-
-# Agent 2: Arabic Content Writer
-writer_prompt = ChatPromptTemplate.from_messages([
-    (
-        "system",
-        """
-        You are a professional Arabic technology content writer and editor.
-
-        Your task is to transform the provided research summary into
-        a high-quality, detailed technology article.
-
-        LANGUAGE REQUIREMENT:
-        The FINAL ARTICLE MUST BE WRITTEN ENTIRELY IN ARABIC.
-
-        Do NOT write the article in English.
-
-        The article should use clear, natural, professional Arabic that
-        is easy to understand and suitable for a technology website.
-
-        Writing requirements:
-        - Write in Modern Standard Arabic.
-        - Keep technical terms in English when they are commonly used
-          by developers, and optionally explain them in Arabic.
-        - Make the article informative and engaging.
-        - Do not simply translate the research word-for-word.
-        - Rewrite and structure the information naturally for Arabic readers.
-        - Add useful context when it is supported by the research.
-        - Do not invent facts, statistics, quotes, or sources.
-        - Use short and readable paragraphs.
-        - Use descriptive headings.
-        - Make the article SEO-friendly without keyword stuffing.
-
-        HTML REQUIREMENTS:
-        - Return valid HTML content only.
-        - Use tags such as:
-          <h2>
-          <h3>
-          <p>
-          <ul>
-          <ol>
-          <li>
-          <strong>
-          <em>
-        - Do NOT use Markdown.
-        - Do NOT use code fences.
-        - Do NOT add ```html at the beginning or end.
-        - Do NOT include <html>, <head>, or <body> tags.
-
-        IMPORTANT:
-        The output must be the complete Arabic article only.
-        """
-    ),
-    (
-        "human",
-        """
-        Research summary:
-
-        {trend_summary}
-
-        Write the complete article in ARABIC following all requirements above.
-        """
-    )
-])
-
-writer_chain = writer_prompt | llm
-
-
-# Agent 3: Arabic SEO Title Generator
-seo_prompt = ChatPromptTemplate.from_messages([
-    (
-        "system",
-        """
-        You are an expert SEO content strategist.
-
-        Create a compelling SEO-friendly title for the provided Arabic
-        technology article.
-
-        LANGUAGE REQUIREMENT:
-        The title MUST be written in ARABIC.
-
-        Requirements:
-        - Write only the title.
-        - Do not add explanations.
-        - Do not use quotation marks.
-        - Do not use Markdown.
-        - Make it attractive and suitable for Google Search.
-        - Clearly communicate the main topic of the article.
-        - Avoid clickbait that does not accurately represent the article.
-        """
-    ),
-    (
-        "human",
-        """
-        Article content:
-
-        {content}
-        """
-    )
-])
-
-seo_chain = seo_prompt | llm
-
-
-# ==========================================
-# 4. Main Execution
-# ==========================================
 if __name__ == "__main__":
-
-    print(
-        "🔍 Agent 1 (Researcher): "
-        "Searching for the latest technology trends..."
-    )
-
-    live_data = search_latest_tech_news(
-        "latest AI software engineering trends news"
-    )
-
-    print(
-        "💡 Agent 1: "
-        "Analyzing search results and extracting the main trend..."
-    )
-
-    trend_summary = researcher_chain.invoke(
-        {
-            "search_results": live_data
-        }
-    ).content
-
-    print(
-        "🤖 Agent 2 (Writer): "
-        "Writing the Arabic article..."
-    )
-
-    article_content = writer_chain.invoke(
-        {
-            "trend_summary": trend_summary
-        }
-    ).content
-
-    print(
-        "🤖 Agent 3 (SEO Expert): "
-        "Generating the Arabic SEO title..."
-    )
-
-    article_title = seo_chain.invoke(
-        {
-            "content": article_content
-        }
-    ).content
-
-    print(
-        "🚀 Publishing the article "
-        "as a WordPress draft..."
-    )
-
-    result = publish_to_wordpress(
-        article_title,
-        article_content
-    )
-
-    print("\n✅ Final result:")
-    print(result)
+    logger.info("Starting Modawen Agent Pipeline...")
+    run_agent_pipeline()
+    logger.info("Pipeline execution completed.")
