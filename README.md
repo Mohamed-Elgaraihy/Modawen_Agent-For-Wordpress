@@ -14,6 +14,8 @@ Created by **Mohamed Elgaraihy** ([@EngMoElgaraihy on X](https://x.com/EngMoElga
   - 🔍 **Technology Researcher Agent:** Analyzes live search results to extract key insights and facts.
   - ✍️ **Arabic Content Writer Agent:** Transforms the research into a natural, SEO-friendly, and professional Arabic article.
   - 🎯 **SEO Expert Agent:** Generates an attractive, click-worthy Arabic title optimized for search engines.
+  - 🖼️ **Image Query Agent:** Generates an English query to find the perfect stock photo.
+- **Featured Image Integration:** Automatically fetches a high-quality free stock photo from Pexels and uploads it to the WordPress Media Library.
 - **WordPress Integration:** Automatically publishes the generated article directly to your WordPress site as a Draft.
 
 ## 📋 Prerequisites
@@ -22,6 +24,7 @@ Before you begin, ensure you have met the following requirements:
 - Python 3.8+ installed on your machine.
 - A WordPress website.
 - A **Google Gemini API Key**. You can get one from [Google AI Studio](https://aistudio.google.com/).
+- A **Pexels API Key** (for automatic featured images). Get it for free at [Pexels API](https://www.pexels.com/api/).
 - A **WordPress Application Password**.
   - Go to your WordPress Admin Dashboard.
   - Navigate to **Users** -> **Profile**.
@@ -57,6 +60,7 @@ Before you begin, ensure you have met the following requirements:
    WP_URL=https://your-wordpress-site.com
    WP_USERNAME=your_wp_username
    WP_APP_PASSWORD=your_wp_application_password_here
+   PEXELS_API_KEY=your_pexels_api_key_here
    ```
 
 ## 💻 Usage

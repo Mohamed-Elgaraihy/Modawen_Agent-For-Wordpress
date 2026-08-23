@@ -1,6 +1,6 @@
 from config import logger, DEFAULT_TOPIC
-from agents import search_latest_tech_news, researcher_chain, writer_chain, seo_chain
-from utils import publish_to_wordpress
+from agents import search_latest_tech_news, researcher_chain, writer_chain, seo_chain, image_query_chain
+from utils import publish_to_wordpress, get_pexels_image_url, upload_image_to_wordpress
 
 def run_agent_pipeline():
     """Run the complete Modawen agent pipeline."""
@@ -36,8 +36,23 @@ def run_agent_pipeline():
         logger.error(f"SEO agent failed: {e}")
         return
 
+    logger.info("🖼️ Agent 4 (Image Query): Generating Pexels search query...")
+    featured_media_id = None
+    if image_query_chain:
+        try:
+            image_query = image_query_chain.invoke({"context": trend_summary}).content
+            logger.info(f"Generated Image Query: {image_query}")
+            
+            image_url = get_pexels_image_url(image_query)
+            if image_url:
+                featured_media_id = upload_image_to_wordpress(image_url, image_query)
+        except Exception as e:
+            logger.error(f"Image fetching failed: {e}")
+    else:
+        logger.warning("Image Query Agent not initialized.")
+
     logger.info("🚀 Publishing the article as a WordPress draft...")
-    result = publish_to_wordpress(article_title, article_content)
+    result = publish_to_wordpress(article_title, article_content, featured_media_id=featured_media_id)
     
     logger.info(f"✅ Final result: {result}")
     print(f"\n✅ Final result: {result}")

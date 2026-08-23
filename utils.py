@@ -1,7 +1,9 @@
 import re
 import requests
+import tempfile
+import os
 from requests.auth import HTTPBasicAuth
-from config import WP_URL, WP_USERNAME, WP_APP_PASSWORD, logger
+from config import WP_URL, WP_USERNAME, WP_APP_PASSWORD, PEXELS_API_KEY, logger
 
 def clean_html_content(raw_html: str) -> str:
     """Remove unnecessary Markdown code fences from generated HTML."""
@@ -13,8 +15,80 @@ def clean_html_content(raw_html: str) -> str:
         logger.error(f"Error cleaning HTML content: {e}")
         return raw_html
 
-def publish_to_wordpress(title: str, content: str, status: str = "draft") -> str:
-    """Create a WordPress post."""
+def get_pexels_image_url(query: str) -> str:
+    """Search Pexels for an image and return its URL."""
+    if not PEXELS_API_KEY:
+        logger.warning("PEXELS_API_KEY is not set. Skipping image search.")
+        return None
+
+    logger.info(f"Searching Pexels for image related to: '{query}'")
+    headers = {"Authorization": PEXELS_API_KEY}
+    url = f"https://api.pexels.com/v1/search?query={query}&per_page=1"
+    
+    try:
+        response = requests.get(url, headers=headers, timeout=15)
+        response.raise_for_status()
+        data = response.json()
+        if data.get("photos") and len(data["photos"]) > 0:
+            image_url = data["photos"][0]["src"]["large"]
+            logger.info(f"Found Pexels image: {image_url}")
+            return image_url
+        else:
+            logger.warning(f"No images found on Pexels for query: '{query}'")
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Pexels API request failed: {e}")
+    return None
+
+def upload_image_to_wordpress(image_url: str, title: str) -> int:
+    """Download an image from URL and upload it to WordPress Media Library."""
+    if not WP_URL or not WP_USERNAME or not WP_APP_PASSWORD:
+        return None
+
+    try:
+        # Download image
+        logger.info(f"Downloading image from {image_url}...")
+        img_response = requests.get(image_url, timeout=30)
+        img_response.raise_for_status()
+
+        # Create temporary file
+        fd, temp_path = tempfile.mkstemp(suffix=".jpg")
+        with os.fdopen(fd, 'wb') as f:
+            f.write(img_response.content)
+
+        # Upload to WordPress
+        logger.info("Uploading image to WordPress Media Library...")
+        media_url = f"{WP_URL.rstrip('/')}/wp-json/wp/v2/media"
+        
+        # Clean title for filename
+        clean_name = re.sub(r'[^a-zA-Z0-9_-]', '_', title[:30]) + ".jpg"
+
+        with open(temp_path, 'rb') as f:
+            headers = {
+                'Content-Disposition': f'attachment; filename="{clean_name}"',
+                'Content-Type': 'image/jpeg'
+            }
+            media_response = requests.post(
+                media_url,
+                headers=headers,
+                data=f,
+                auth=HTTPBasicAuth(WP_USERNAME, WP_APP_PASSWORD),
+                timeout=60
+            )
+        
+        # Clean up temp file
+        os.remove(temp_path)
+
+        media_response.raise_for_status()
+        media_id = media_response.json().get('id')
+        logger.info(f"Successfully uploaded media. ID: {media_id}")
+        return media_id
+
+    except Exception as e:
+        logger.error(f"Failed to upload image to WordPress: {e}")
+        return None
+
+def publish_to_wordpress(title: str, content: str, status: str = "draft", featured_media_id: int = None) -> str:
+    """Create a WordPress post with an optional featured image."""
     if not WP_URL or not WP_USERNAME or not WP_APP_PASSWORD:
         logger.error("WordPress credentials are not fully configured in .env.")
         return "Failed: WordPress credentials missing."
@@ -30,6 +104,9 @@ def publish_to_wordpress(title: str, content: str, status: str = "draft") -> str
         "content": clean_content,
         "status": status
     }
+    
+    if featured_media_id:
+        payload["featured_media"] = featured_media_id
 
     try:
         response = requests.post(

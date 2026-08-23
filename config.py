@@ -21,6 +21,8 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 WP_URL = os.getenv("WP_URL")
 WP_USERNAME = os.getenv("WP_USERNAME")
 WP_APP_PASSWORD = os.getenv("WP_APP_PASSWORD")
+PEXELS_API_KEY = os.getenv("PEXELS_API_KEY")
+
 
 # Default settings
 DEFAULT_TOPIC = "latest AI software engineering trends news"

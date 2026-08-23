@@ -205,3 +205,34 @@ seo_prompt = ChatPromptTemplate.from_messages([
 ])
 
 seo_chain = seo_prompt | llm if llm else None
+
+# Agent 4: Image Search Query Generator
+image_query_prompt = ChatPromptTemplate.from_messages([
+    (
+        "system",
+        """
+        You are an expert image researcher.
+        
+        Based on the provided article title or summary, generate a short, 
+        1-3 word English search query that would be perfect for searching 
+        a stock photo website like Pexels.
+        
+        Requirements:
+        - Return ONLY the search query.
+        - Must be in English.
+        - Must be 1-3 words maximum.
+        - Focus on visual elements (e.g., "artificial intelligence", "coding computer", "developer").
+        - Do not use quotes or punctuation.
+        """
+    ),
+    (
+        "human",
+        """
+        Article context:
+        {context}
+        """
+    )
+])
+
+image_query_chain = image_query_prompt | llm if llm else None
+
