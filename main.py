@@ -5,13 +5,13 @@ from requests.auth import HTTPBasicAuth
 from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
-#from duckduckgo_search import DDGS
 from googlesearch import search
 
-#From Env
+# Load environment variables
 load_dotenv()
 
-#Or From Github Actions Load sensitive credentials from environment variables
+# Load sensitive credentials from environment variables
+# This also works with GitHub Actions environment variables
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 WP_URL = os.getenv("WP_URL")
 WP_USERNAME = os.getenv("WP_USERNAME")
@@ -38,28 +38,42 @@ def clean_html_content(raw_html: str) -> str:
 # ==========================================
 # 2. Tools
 # ==========================================
-# أداة البحث المحدثة والآمنة
 def search_latest_tech_news(query: str) -> str:
-    """تبحث في الإنترنت ديناميكياً عن أي موضوع يطلبه الأيجنت وترجع نتائج حية."""
+    """Search Google dynamically for live information related to the given query."""
     results = []
+
     try:
-        # البحث في جوجل عن الـ query المطلوبة من الأيجنت مباشرة
-        search_results = search(query, num_results=5, advanced=True)
-        
+        # Search Google using the query provided by the AI agent
+        search_results = search(
+            query,
+            num_results=5,
+            advanced=True
+        )
+
         for r in search_results:
-            results.append(f"العنوان: {r.title}\nالملخص: {r.description}\nالرابط: {r.url}\n")
-            
+            results.append(
+                f"Title: {r.title}\n"
+                f"Summary: {r.description}\n"
+                f"URL: {r.url}\n"
+            )
+
         final_text = "\n".join(results)
-        
+
         if final_text.strip():
             return final_text
-            
-    except Exception as e:
-        print(f"⚠️ خطأ أثناء البحث: {e}")
 
-    # لو حصل أي مشكلة في النت، يطلب من الموديل توليد أفكار حول نفس الـ query المطلوبة
-    fallback_prompt = f"اكتب ملخصاً لأحدث التطورات والتريندات الحالية المتعلقة بـ: {query}"
+    except Exception as e:
+        print(f"⚠️ Search error: {e}")
+
+    # If the web search fails, ask the AI model to provide
+    # a general summary related to the same topic
+    fallback_prompt = (
+        f"Provide a general summary of the latest developments "
+        f"and trends related to: {query}"
+    )
+
     return llm.invoke(fallback_prompt).content
+
 
 def publish_to_wordpress(title, content):
     """Create a WordPress draft post."""
@@ -82,7 +96,10 @@ def publish_to_wordpress(title, content):
     )
 
     if response.status_code == 201:
-        return f"Success! Created draft with ID: {response.json().get('id')}"
+        return (
+            f"Success! Created draft with ID: "
+            f"{response.json().get('id')}"
+        )
 
     return f"Failed: {response.status_code} - {response.text}"
 
@@ -241,13 +258,19 @@ seo_chain = seo_prompt | llm
 # ==========================================
 if __name__ == "__main__":
 
-    print("🔍 Agent 1 (Researcher): Searching for the latest technology trends...")
+    print(
+        "🔍 Agent 1 (Researcher): "
+        "Searching for the latest technology trends..."
+    )
 
     live_data = search_latest_tech_news(
         "latest AI software engineering trends news"
     )
 
-    print("💡 Agent 1: Analyzing search results and extracting the main trend...")
+    print(
+        "💡 Agent 1: "
+        "Analyzing search results and extracting the main trend..."
+    )
 
     trend_summary = researcher_chain.invoke(
         {
@@ -255,7 +278,10 @@ if __name__ == "__main__":
         }
     ).content
 
-    print("🤖 Agent 2 (Writer): Writing the Arabic article...")
+    print(
+        "🤖 Agent 2 (Writer): "
+        "Writing the Arabic article..."
+    )
 
     article_content = writer_chain.invoke(
         {
@@ -263,7 +289,10 @@ if __name__ == "__main__":
         }
     ).content
 
-    print("🤖 Agent 3 (SEO Expert): Generating the Arabic SEO title...")
+    print(
+        "🤖 Agent 3 (SEO Expert): "
+        "Generating the Arabic SEO title..."
+    )
 
     article_title = seo_chain.invoke(
         {
@@ -271,7 +300,10 @@ if __name__ == "__main__":
         }
     ).content
 
-    print("🚀 Publishing the article as a WordPress draft...")
+    print(
+        "🚀 Publishing the article "
+        "as a WordPress draft..."
+    )
 
     result = publish_to_wordpress(
         article_title,
