@@ -124,8 +124,80 @@ def upload_image_to_wordpress(image_url: str, title: str) -> int:
         logger.error(f"Failed to upload image to WordPress: {e}")
         return None
 
-def publish_to_wordpress(title: str, content: str, status: str = "draft", featured_media_id: int = None) -> str:
-    """Create a WordPress post with an optional featured image."""
+def get_wp_categories() -> list:
+    """Fetch existing categories from WordPress."""
+    if not WP_URL or not WP_USERNAME or not WP_APP_PASSWORD:
+        return []
+    
+    api_url = f"{WP_URL.rstrip('/')}/wp-json/wp/v2/categories?per_page=100"
+    try:
+        response = requests.get(
+            api_url,
+            auth=HTTPBasicAuth(WP_USERNAME, WP_APP_PASSWORD),
+            timeout=15
+        )
+        response.raise_for_status()
+        categories = response.json()
+        return [{"id": cat["id"], "name": cat["name"]} for cat in categories]
+    except Exception as e:
+        logger.error(f"Failed to fetch WordPress categories: {e}")
+        return []
+
+def create_wp_category(name: str) -> int:
+    """Create a new category in WordPress and return its ID."""
+    if not WP_URL or not WP_USERNAME or not WP_APP_PASSWORD:
+        return None
+        
+    api_url = f"{WP_URL.rstrip('/')}/wp-json/wp/v2/categories"
+    payload = {"name": name}
+    try:
+        response = requests.post(
+            api_url,
+            json=payload,
+            auth=HTTPBasicAuth(WP_USERNAME, WP_APP_PASSWORD),
+            timeout=15
+        )
+        # 400 status often means term already exists
+        if response.status_code == 400 and 'term_exists' in response.text:
+            logger.info(f"Category '{name}' already exists.")
+            return response.json().get('data', {}).get('term_id')
+            
+        response.raise_for_status()
+        return response.json().get('id')
+    except Exception as e:
+        logger.error(f"Failed to create WordPress category '{name}': {e}")
+        return None
+
+def create_wp_tags(tags: list) -> list:
+    """Create new tags in WordPress and return their IDs."""
+    if not WP_URL or not WP_USERNAME or not WP_APP_PASSWORD or not tags:
+        return []
+        
+    api_url = f"{WP_URL.rstrip('/')}/wp-json/wp/v2/tags"
+    tag_ids = []
+    
+    for tag_name in tags:
+        payload = {"name": tag_name}
+        try:
+            response = requests.post(
+                api_url,
+                json=payload,
+                auth=HTTPBasicAuth(WP_USERNAME, WP_APP_PASSWORD),
+                timeout=15
+            )
+            if response.status_code == 400 and 'term_exists' in response.text:
+                tag_id = response.json().get('data', {}).get('term_id')
+                tag_ids.append(tag_id)
+            else:
+                response.raise_for_status()
+                tag_ids.append(response.json().get('id'))
+        except Exception as e:
+            logger.error(f"Failed to create WordPress tag '{tag_name}': {e}")
+            
+    return tag_ids
+
+def publish_to_wordpress(title: str, content: str, status: str = "draft", featured_media_id: int = None, category_ids: list = None, tag_ids: list = None) -> str:
+    """Create a WordPress post with an optional featured image, categories, and tags."""
     if not WP_URL or not WP_USERNAME or not WP_APP_PASSWORD:
         logger.error("WordPress credentials are not fully configured in .env.")
         return "Failed: WordPress credentials missing."
@@ -144,6 +216,10 @@ def publish_to_wordpress(title: str, content: str, status: str = "draft", featur
     
     if featured_media_id:
         payload["featured_media"] = featured_media_id
+    if category_ids:
+        payload["categories"] = category_ids
+    if tag_ids:
+        payload["tags"] = tag_ids
 
     try:
         response = requests.post(
@@ -163,3 +239,4 @@ def publish_to_wordpress(title: str, content: str, status: str = "draft", featur
         if e.response is not None:
             logger.error(f"Response details: {e.response.text}")
         return f"Failed to publish to WordPress: {e}"
+

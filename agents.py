@@ -1,7 +1,9 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_core.prompts import ChatPromptTemplate
 from googlesearch import search
-from config import GEMINI_API_KEY, logger
+import yaml
+import sys
+from config import GEMINI_API_KEY, TARGET_LANGUAGE, logger
 
 # Initialize the LLM
 try:
@@ -12,6 +14,15 @@ try:
 except Exception as e:
     logger.error(f"Failed to initialize Gemini LLM: {e}")
     llm = None
+
+# Load Prompts from YAML
+PROMPTS_FILE = "prompts.yaml"
+try:
+    with open(PROMPTS_FILE, "r", encoding="utf-8") as f:
+        prompts_config = yaml.safe_load(f)
+except Exception as e:
+    logger.error(f"Failed to load {PROMPTS_FILE}: {e}")
+    sys.exit(1)
 
 def search_latest_tech_news(query: str) -> str:
     """Search Google dynamically for live information related to the given query."""
@@ -66,173 +77,31 @@ def search_latest_tech_news(query: str) -> str:
 
 # Agent 1: Technology Researcher
 researcher_prompt = ChatPromptTemplate.from_messages([
-    (
-        "system",
-        """
-        You are an expert technology researcher.
-
-        Analyze the live search results and identify the most relevant
-        and interesting recent technology trend for developers.
-
-        Focus on topics such as:
-        - Artificial Intelligence
-        - AI coding tools
-        - Software engineering
-        - Web development
-        - Programming
-        - Developer tools
-        - SaaS
-        - Automation
-        - New AI models and technologies
-
-        Extract the key facts, important developments, and useful insights.
-
-        IMPORTANT:
-        - Analyze the sources carefully.
-        - Do not invent information.
-        - Return the research summary in ENGLISH.
-        - Do not write the final article.
-        """
-    ),
-    (
-        "human",
-        """
-        Live search results:
-
-        {search_results}
-        """
-    )
+    ("system", prompts_config.get("researcher", "You are a researcher.")),
+    ("human", "Live search results:\n{search_results}")
 ])
-
 researcher_chain = researcher_prompt | llm if llm else None
 
-# Agent 2: Arabic Content Writer
+# Agent 2: Content Writer
 writer_prompt = ChatPromptTemplate.from_messages([
-    (
-        "system",
-        """
-        You are a professional Arabic technology content writer and editor.
-
-        Your task is to transform the provided research summary into
-        a high-quality, detailed technology article.
-
-        LANGUAGE REQUIREMENT:
-        The FINAL ARTICLE MUST BE WRITTEN ENTIRELY IN ARABIC.
-
-        Do NOT write the article in English.
-
-        The article should use clear, natural, professional Arabic that
-        is easy to understand and suitable for a technology website.
-
-        Writing requirements:
-        - Write in Modern Standard Arabic.
-        - Keep technical terms in English when they are commonly used
-          by developers, and optionally explain them in Arabic.
-        - Make the article informative and engaging.
-        - Do not simply translate the research word-for-word.
-        - Rewrite and structure the information naturally for Arabic readers.
-        - Add useful context when it is supported by the research.
-        - Do not invent facts, statistics, quotes, or sources.
-        - Use short and readable paragraphs.
-        - Use descriptive headings.
-        - Make the article SEO-friendly without keyword stuffing.
-
-        HTML REQUIREMENTS:
-        - Return valid HTML content only.
-        - Use tags such as:
-          <h2>
-          <h3>
-          <p>
-          <ul>
-          <ol>
-          <li>
-          <strong>
-          <em>
-        - Do NOT use Markdown.
-        - Do NOT use code fences.
-        - Do NOT add ```html at the beginning or end.
-        - Do NOT include <html>, <head>, or <body> tags.
-
-        IMPORTANT:
-        The output must be the complete Arabic article only.
-        """
-    ),
-    (
-        "human",
-        """
-        Research summary:
-
-        {trend_summary}
-
-        Write the complete article in ARABIC following all requirements above.
-        """
-    )
+    ("system", prompts_config.get("writer", "You are a writer.").replace("{target_language}", TARGET_LANGUAGE)),
+    ("human", "Research summary:\n{trend_summary}\n\nWrite the complete article in {target_language} following all requirements above.".replace("{target_language}", TARGET_LANGUAGE))
 ])
-
 writer_chain = writer_prompt | llm if llm else None
 
-# Agent 3: Arabic SEO Title Generator
+# Agent 3: Metadata & SEO Agent (Outputs JSON)
 seo_prompt = ChatPromptTemplate.from_messages([
-    (
-        "system",
-        """
-        You are an expert SEO content strategist.
-
-        Create a compelling SEO-friendly title for the provided Arabic
-        technology article.
-
-        LANGUAGE REQUIREMENT:
-        The title MUST be written in ARABIC.
-
-        Requirements:
-        - Write only the title.
-        - Do not add explanations.
-        - Do not use quotation marks.
-        - Do not use Markdown.
-        - Make it attractive and suitable for Google Search.
-        - Clearly communicate the main topic of the article.
-        - Avoid clickbait that does not accurately represent the article.
-        """
-    ),
-    (
-        "human",
-        """
-        Article content:
-
-        {content}
-        """
-    )
+    ("system", prompts_config.get("metadata", "You are an SEO expert.").replace("{target_language}", TARGET_LANGUAGE)),
+    ("human", "Existing Categories:\n{categories}\n\nArticle content:\n{content}")
 ])
-
+# We enforce JSON response format if supported by LLM, but for LangChain basic invoke we can just request it in the prompt.
+# We will parse the output as JSON in main.py
 seo_chain = seo_prompt | llm if llm else None
 
 # Agent 4: Image Search Query Generator
 image_query_prompt = ChatPromptTemplate.from_messages([
-    (
-        "system",
-        """
-        You are an expert image researcher.
-        
-        Based on the provided article title or summary, generate a short, 
-        1-3 word English search query that would be perfect for searching 
-        a stock photo website like Pexels.
-        
-        Requirements:
-        - Return ONLY the search query.
-        - Must be in English.
-        - Must be 1-3 words maximum.
-        - Focus on visual elements (e.g., "artificial intelligence", "coding computer", "developer").
-        - Do not use quotes or punctuation.
-        """
-    ),
-    (
-        "human",
-        """
-        Article context:
-        {context}
-        """
-    )
+    ("system", prompts_config.get("image_query", "You are an image researcher.")),
+    ("human", "Article context:\n{context}")
 ])
-
 image_query_chain = image_query_prompt | llm if llm else None
 

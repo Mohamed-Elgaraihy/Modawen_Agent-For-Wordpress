@@ -1,0 +1,4 @@
+agent_settings:
+  search_query: "latest AI software engineering trends news"
+  target_language: "Arabic"
+  number_of_articles: 1

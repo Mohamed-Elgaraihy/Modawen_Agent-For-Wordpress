@@ -2,3 +2,4 @@ requests
 langchain-google-genai
 googlesearch-python
 python-dotenv
+pyyaml
