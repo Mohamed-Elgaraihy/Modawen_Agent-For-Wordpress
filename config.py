@@ -22,6 +22,8 @@ WP_URL = os.getenv("WP_URL")
 WP_USERNAME = os.getenv("WP_USERNAME")
 WP_APP_PASSWORD = os.getenv("WP_APP_PASSWORD")
 PEXELS_API_KEY = os.getenv("PEXELS_API_KEY")
+OPENAI_IMAGE_API_KEY = os.getenv("OPENAI_IMAGE_API_KEY")
+
 
 
 # Default settings

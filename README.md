@@ -24,7 +24,10 @@ Before you begin, ensure you have met the following requirements:
 - Python 3.8+ installed on your machine.
 - A WordPress website.
 - A **Google Gemini API Key**. You can get one from [Google AI Studio](https://aistudio.google.com/).
-- A **Pexels API Key** (for automatic featured images). Get it for free at [Pexels API](https://www.pexels.com/api/).
+- **(Optional) Image Generation APIs:**
+  - A **Pexels API Key** for free stock photos. Get it at [Pexels API](https://www.pexels.com/api/).
+  - An **OpenAI API Key** for DALL-E 3 AI image generation.
+  - *Note: If you provide neither, the script safely generates text-only articles. If you provide both, the script will ask you which one to use when it runs!*
 - A **WordPress Application Password**.
   - Go to your WordPress Admin Dashboard.
   - Navigate to **Users** -> **Profile**.
@@ -61,6 +64,7 @@ Before you begin, ensure you have met the following requirements:
    WP_USERNAME=your_wp_username
    WP_APP_PASSWORD=your_wp_application_password_here
    PEXELS_API_KEY=your_pexels_api_key_here
+   OPENAI_IMAGE_API_KEY=your_openai_api_key_here
    ```
 
 ## 💻 Usage

@@ -39,6 +39,43 @@ def get_pexels_image_url(query: str) -> str:
         logger.error(f"Pexels API request failed: {e}")
     return None
 
+def get_openai_image_url(prompt: str) -> str:
+    """Generate an image using OpenAI DALL-E 3 and return its URL."""
+    from config import OPENAI_IMAGE_API_KEY
+    if not OPENAI_IMAGE_API_KEY:
+        logger.warning("OPENAI_IMAGE_API_KEY is not set. Skipping OpenAI image generation.")
+        return None
+
+    logger.info(f"Generating image via OpenAI for prompt: '{prompt}'")
+    headers = {
+        "Authorization": f"Bearer {OPENAI_IMAGE_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    url = "https://api.openai.com/v1/images/generations"
+    payload = {
+        "model": "dall-e-3",
+        "prompt": prompt,
+        "n": 1,
+        "size": "1024x1024"
+    }
+    
+    try:
+        response = requests.post(url, headers=headers, json=payload, timeout=60)
+        response.raise_for_status()
+        data = response.json()
+        if data.get("data") and len(data["data"]) > 0:
+            image_url = data["data"][0]["url"]
+            logger.info("Successfully generated image with OpenAI.")
+            return image_url
+        else:
+            logger.warning("OpenAI API returned success but no image URL was found.")
+    except requests.exceptions.RequestException as e:
+        logger.error(f"OpenAI API request failed: {e}")
+        if e.response is not None:
+            logger.error(f"Response details: {e.response.text}")
+    return None
+
+
 def upload_image_to_wordpress(image_url: str, title: str) -> int:
     """Download an image from URL and upload it to WordPress Media Library."""
     if not WP_URL or not WP_USERNAME or not WP_APP_PASSWORD:
