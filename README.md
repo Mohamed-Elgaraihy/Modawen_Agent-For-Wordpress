@@ -3,7 +3,7 @@
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.8%2B-blue.svg)
 
-**Modawen Agent for WordPress** is an open-source, AI-powered automation tool that researches the latest technology trends, writes high-quality Arabic articles, and publishes them directly to your WordPress site.
+**Modawen Agent for WordPress** is an open-source, AI-powered multi-agent system that researches live trends, writes high-quality articles, generates featured images (via DALL-E 3 or Pexels), intelligently manages SEO metadata, and publishes automatically to WordPress.
 
 Created by **Mohamed Elgaraihy** ([@EngMoElgaraihy on X](https://x.com/EngMoElgaraihy)).
 
@@ -12,11 +12,13 @@ Created by **Mohamed Elgaraihy** ([@EngMoElgaraihy on X](https://x.com/EngMoElga
 - **Live Research:** Uses Google Search dynamically to gather the latest news and avoid AI hallucinations.
 - **Multi-Agent System:**
   - 🔍 **Technology Researcher Agent:** Analyzes live search results to extract key insights and facts.
-  - ✍️ **Arabic Content Writer Agent:** Transforms the research into a natural, SEO-friendly, and professional Arabic article.
-  - 🎯 **SEO Expert Agent:** Generates an attractive, click-worthy Arabic title optimized for search engines.
-  - 🖼️ **Image Query Agent:** Generates an English query to find the perfect stock photo.
-- **Featured Image Integration:** Automatically fetches a high-quality free stock photo from Pexels and uploads it to the WordPress Media Library.
-- **WordPress Integration:** Automatically publishes the generated article directly to your WordPress site as a Draft.
+  - ✍️ **Content Writer Agent:** Transforms the research into a natural, SEO-friendly, and professional article in your chosen language.
+  - 🎯 **Metadata & SEO Agent:** Generates an attractive title, creates SEO tags, and intelligently selects the best existing WordPress Category (or creates a new one).
+  - 🖼️ **Image Query Agent:** Generates an English query to find the perfect stock photo or AI image.
+- **Dynamic Configuration:** Easily change search topics, target languages, and run loops for multiple articles via `config.yaml`.
+- **Customizable Prompts:** All AI instructions are stored in `prompts.yaml` so you can tweak the agent personalities without touching the code!
+- **Featured Image Integration:** Automatically fetches a high-quality free stock photo from Pexels OR generates a custom image via OpenAI DALL-E 3, and uploads it to the WordPress Media Library.
+- **WordPress Integration:** Automatically assigns categories/tags and publishes the generated article directly to your WordPress site as a Draft.
 
 ## 📋 Prerequisites
 
@@ -66,6 +68,10 @@ Before you begin, ensure you have met the following requirements:
    PEXELS_API_KEY=your_pexels_api_key_here
    OPENAI_IMAGE_API_KEY=your_openai_api_key_here
    ```
+
+5. **Advanced Settings (Optional):**
+   - Edit `config.yaml` to change the search query, target language, and number of articles to generate.
+   - Edit `prompts.yaml` to tweak the AI's behavior and writing style.
 
 ## 💻 Usage
 
