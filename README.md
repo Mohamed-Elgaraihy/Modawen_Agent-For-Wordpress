@@ -10,9 +10,10 @@ Created by **Mohamed Elgaraihy** ([@EngMoElgaraihy on X](https://x.com/EngMoElga
 ## 🌟 Features
 
 - **Live Research:** Uses Google Search dynamically to gather the latest news and avoid AI hallucinations.
-- **Multi-Agent System:**
+- **5-Agent AI System:**
+  - 🧠 **Topic Generator Agent:** Breaks down your broad niche into highly specific, unique search queries to ensure you never publish repetitive content.
   - 🔍 **Technology Researcher Agent:** Analyzes live search results to extract key insights and facts.
-  - ✍️ **Content Writer Agent:** Transforms the research into a natural, SEO-friendly, and professional article in your chosen language.
+  - ✍️ **Content Writer Agent:** Transforms the research into a natural, SEO-friendly, and professional article in your chosen language, embedding high-value outbound links.
   - 🎯 **Metadata & SEO Agent:** Generates an attractive title, creates SEO tags, and intelligently selects the best existing WordPress Category (or creates a new one).
   - 🖼️ **Image Query Agent:** Generates an English query to find the perfect stock photo or AI image.
 - **Dynamic Configuration:** Easily change search topics, target languages, and run loops for multiple articles via `config.yaml`.
