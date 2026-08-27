@@ -15,25 +15,37 @@ def run_agent_pipeline():
     existing_categories = get_wp_categories()
     categories_text = json.dumps(existing_categories, ensure_ascii=False) if existing_categories else "No existing categories found."
 
-    # Generate distinct sub-topics if multiple articles are requested
+    # Always generate a pool of distinct sub-topics for variety
     topic_list = []
-    if NUMBER_OF_ARTICLES > 1 and topic_generator_chain:
-        logger.info(f"🧠 Agent 5 (Topic Generator): Creating {NUMBER_OF_ARTICLES} distinct sub-topics for '{SEARCH_QUERY}'...")
+    if topic_generator_chain:
+        logger.info(f"🧠 Agent 5 (Topic Generator): Creating a pool of distinct sub-topics for '{SEARCH_QUERY}'...")
         try:
+            # We always ask for a larger pool (e.g., 10) to ensure randomness across manual runs
+            pool_size = max(10, NUMBER_OF_ARTICLES * 2)
             topic_response = topic_generator_chain.invoke({
                 "search_query": SEARCH_QUERY, 
-                "number_of_articles": NUMBER_OF_ARTICLES
+                "number_of_articles": pool_size
             }).content
             topic_clean = topic_response.strip().removeprefix("```json").removesuffix("```").strip()
             topic_list = json.loads(topic_clean)
+            
             if not isinstance(topic_list, list) or len(topic_list) == 0:
                 raise ValueError("Topic generator did not return a valid list.")
-            logger.info(f"✨ Distinct topics generated: {topic_list}")
+                
+            import random
+            # Randomly select the exact number of articles requested to guarantee variety across manual runs
+            topic_list = random.sample(topic_list, min(NUMBER_OF_ARTICLES, len(topic_list)))
+            
+            # If the user asked for more articles than the pool returned, we pad the list
+            while len(topic_list) < NUMBER_OF_ARTICLES:
+                topic_list.append(f"{SEARCH_QUERY} update {len(topic_list)+1}")
+                
+            logger.info(f"✨ Selected unique topics for this run: {topic_list}")
         except Exception as e:
             logger.error(f"Topic Generator failed: {e}. Falling back to default query logic.")
             topic_list = [f"{SEARCH_QUERY} update {i+1}" for i in range(NUMBER_OF_ARTICLES)]
     else:
-        topic_list = [SEARCH_QUERY]
+        topic_list = [f"{SEARCH_QUERY} update {i+1}" for i in range(NUMBER_OF_ARTICLES)]
 
     for i in range(NUMBER_OF_ARTICLES):
         logger.info(f"\n--- Generating Article {i+1} of {NUMBER_OF_ARTICLES} ---")
