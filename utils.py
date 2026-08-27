@@ -63,16 +63,25 @@ def get_openai_image_url(prompt: str) -> str:
         response = requests.post(url, headers=headers, json=payload, timeout=60)
         response.raise_for_status()
         data = response.json()
+        
         if data.get("data") and len(data["data"]) > 0:
-            image_url = data["data"][0]["url"]
-            logger.info("Successfully generated image with OpenAI.")
-            return image_url
+            image_item = data["data"][0]
+            if "url" in image_item:
+                image_url = image_item["url"]
+                logger.info("Successfully generated image with OpenAI.")
+                return image_url
+            else:
+                logger.error(f"OpenAI response missing 'url' key. Raw data: {data}")
         else:
-            logger.warning("OpenAI API returned success but no image URL was found.")
+            logger.warning(f"OpenAI API returned success but no image data was found. Raw data: {data}")
+            
     except requests.exceptions.RequestException as e:
         logger.error(f"OpenAI API request failed: {e}")
         if e.response is not None:
             logger.error(f"Response details: {e.response.text}")
+    except Exception as e:
+        logger.error(f"Unexpected error processing OpenAI response: {e}")
+        
     return None
 
 
