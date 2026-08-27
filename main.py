@@ -119,7 +119,7 @@ def run_agent_pipeline():
                 if selected_api == "pexels":
                     image_url = get_pexels_image_url(image_query)
                 elif selected_api == "openai":
-                    dalle_prompt = f"A high-quality, professional editorial illustration about: {image_query}. Tech blog style, no text in image."
+                    dalle_prompt = f"A high-quality, professional editorial illustration about: {image_query}. No text in image."
                     image_url = get_openai_image_url(dalle_prompt)
 
                 if image_url:
