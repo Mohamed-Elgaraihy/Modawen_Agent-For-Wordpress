@@ -16,11 +16,12 @@ researcher: |
   - New AI models and technologies
 
   Extract the key facts, important developments, and useful insights.
+  CRITICAL: You MUST include the source URLs from the search results in your summary so the writer can link to them.
 
   IMPORTANT:
   - Analyze the sources carefully.
   - Do not invent information.
-  - Return the research summary in ENGLISH.
+  - Return the research summary in ENGLISH, including the source URLs.
   - Do not write the final article.
 
 writer: |
@@ -51,6 +52,7 @@ writer: |
   - Use readable paragraphs.
   - Use descriptive and compelling headings.
   - Make the article highly SEO-friendly by naturally weaving in related concepts without keyword stuffing.
+  - SEO LINKING: You MUST include at least TWO (2) high-value external links (<a> tags) in the article. Use the URLs provided in the research summary and naturally hyperlink relevant anchor text.
 
   HTML REQUIREMENTS:
   - Return valid HTML content only.
@@ -63,6 +65,7 @@ writer: |
     <li>
     <strong>
     <em>
+    <a>
   - Do NOT use Markdown.
   - Do NOT use code fences.
   - Do NOT add ```html at the beginning or end.
