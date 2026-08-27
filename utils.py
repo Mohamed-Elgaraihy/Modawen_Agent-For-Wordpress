@@ -53,7 +53,7 @@ def get_openai_image_url(prompt: str) -> str:
     }
     url = "https://api.openai.com/v1/images/generations"
     payload = {
-        "model": "dall-e-3",
+        "model": "gpt-image-2",
         "prompt": prompt,
         "n": 1,
         "size": "1024x1024"
