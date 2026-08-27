@@ -3,7 +3,7 @@
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 ![Python](https://img.shields.io/badge/python-3.8%2B-blue.svg)
 
-**Modawen Agent for WordPress** is an open-source, AI-powered multi-agent system that researches live trends, writes high-quality articles, generates featured images (via DALL-E 3 or Pexels), intelligently manages SEO metadata, and publishes automatically to WordPress.
+**Modawen Agent for WordPress** is an open-source, AI-powered multi-agent system that researches live trends, writes high-quality articles, generates featured images (via GPT Image 2 or Pexels), intelligently manages SEO metadata, and publishes automatically to WordPress.
 
 Created by **Mohamed Elgaraihy** ([@EngMoElgaraihy on X](https://x.com/EngMoElgaraihy)).
 
@@ -18,7 +18,7 @@ Created by **Mohamed Elgaraihy** ([@EngMoElgaraihy on X](https://x.com/EngMoElga
   - 🖼️ **Image Query Agent:** Generates an English query to find the perfect stock photo or AI image.
 - **Dynamic Configuration:** Easily change search topics, target languages, and run loops for multiple articles via `config.yaml`.
 - **Customizable Prompts:** All AI instructions are stored in `prompts.yaml` so you can tweak the agent personalities without touching the code!
-- **Featured Image Integration:** Automatically fetches a high-quality free stock photo from Pexels OR generates a custom image via OpenAI DALL-E 3, and uploads it to the WordPress Media Library.
+- **Featured Image Integration:** Automatically fetches a high-quality free stock photo from Pexels OR generates a custom image via OpenAI GPT Image 2, and uploads it to the WordPress Media Library.
 - **WordPress Integration:** Automatically assigns categories/tags and publishes the generated article directly to your WordPress site as a Draft.
 
 ## 📋 Prerequisites
@@ -29,7 +29,7 @@ Before you begin, ensure you have met the following requirements:
 - A **Google Gemini API Key**. You can get one from [Google AI Studio](https://aistudio.google.com/).
 - **(Optional) Image Generation APIs:**
   - A **Pexels API Key** for free stock photos. Get it at [Pexels API](https://www.pexels.com/api/).
-  - An **OpenAI API Key** for DALL-E 3 AI image generation.
+  - An **OpenAI API Key** for GPT Image 2 AI image generation.
   - *Note: If you provide neither, the script safely generates text-only articles. If you provide both, the script will ask you which one to use when it runs!*
 - A **WordPress Application Password**.
   - Go to your WordPress Admin Dashboard.
