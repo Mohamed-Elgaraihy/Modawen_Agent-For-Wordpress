@@ -68,6 +68,13 @@ Before you begin, ensure you have met the following requirements:
    PEXELS_API_KEY=your_pexels_api_key_here
    OPENAI_IMAGE_API_KEY=your_openai_api_key_here
    ```
+   > ⚠️ **IMPORTANT: How to get `WP_APP_PASSWORD`**
+   > You CANNOT use your normal WordPress login password here. You must create an Application Password:
+   > 1. Log in to your WordPress Admin Dashboard.
+   > 2. Go to **Users** -> **Profile**.
+   > 3. Scroll all the way down to **Application Passwords**.
+   > 4. Enter a New Application Password Name (e.g., "Modawen Agent") and click **Add New Application Password**.
+   > 5. Copy the generated password (it looks like `xxxx xxxx xxxx xxxx xxxx xxxx`) and paste it into your `.env` file.
 
 5. **Advanced Settings (Optional):**
    - Edit `config.yaml` to change the search query, target language, and number of articles to generate.
