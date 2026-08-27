@@ -5,13 +5,21 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
+import sys
+# Force UTF-8 encoding for standard output to support emojis in Windows console
+if sys.stdout.encoding.lower() != 'utf-8':
+    try:
+        sys.stdout.reconfigure(encoding='utf-8')
+    except AttributeError:
+        pass
+
 # Setup logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler("modawen.log"),
-        logging.StreamHandler()
+        logging.FileHandler("modawen.log", encoding="utf-8"),
+        logging.StreamHandler(sys.stdout)
     ]
 )
 logger = logging.getLogger("Modawen")
