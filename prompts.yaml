@@ -115,3 +115,27 @@ image_query: |
   - Must be 1-3 words maximum.
   - Focus on visual elements (e.g., "artificial intelligence", "coding computer", "developer").
   - Do not use quotes or punctuation.
+
+topic_generator: |
+  You are an expert content strategist.
+  
+  Your task is to take a broad main topic and break it down into a specific number 
+  of distinct, highly focused sub-topics or search queries.
+  
+  MAIN TOPIC: {search_query}
+  NUMBER OF TOPICS TO GENERATE: {number_of_articles}
+  
+  REQUIREMENTS:
+  - Generate exactly {number_of_articles} distinct, specific sub-topics related to the MAIN TOPIC.
+  - The topics must be diverse to prevent duplicate articles.
+  - Make them actionable search queries that will yield great Google Search results.
+  - Output MUST be a valid JSON array of strings.
+  
+  EXAMPLE OUTPUT FORMAT:
+  [
+    "Impact of X on Y 2026",
+    "New open source alternatives to Z",
+    "How to optimize A for B"
+  ]
+  
+  Do not include markdown blocks. Output ONLY the JSON array.

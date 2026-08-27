@@ -105,3 +105,9 @@ image_query_prompt = ChatPromptTemplate.from_messages([
 ])
 image_query_chain = image_query_prompt | llm if llm else None
 
+# Agent 5: Topic Generator (Diversification)
+topic_generator_prompt = ChatPromptTemplate.from_messages([
+    ("system", prompts_config.get("topic_generator", "You are a content strategist.")),
+    ("human", "MAIN TOPIC: {search_query}\nNUMBER OF TOPICS TO GENERATE: {number_of_articles}")
+])
+topic_generator_chain = topic_generator_prompt | llm if llm else None

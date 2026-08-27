@@ -1,5 +1,5 @@
 from config import logger, SEARCH_QUERY, NUMBER_OF_ARTICLES, PEXELS_API_KEY, OPENAI_IMAGE_API_KEY
-from agents import search_latest_tech_news, researcher_chain, writer_chain, seo_chain, image_query_chain
+from agents import search_latest_tech_news, researcher_chain, writer_chain, seo_chain, image_query_chain, topic_generator_chain
 from utils import publish_to_wordpress, get_pexels_image_url, upload_image_to_wordpress, get_openai_image_url, get_wp_categories, create_wp_category, create_wp_tags
 import json
 
@@ -15,11 +15,31 @@ def run_agent_pipeline():
     existing_categories = get_wp_categories()
     categories_text = json.dumps(existing_categories, ensure_ascii=False) if existing_categories else "No existing categories found."
 
+    # Generate distinct sub-topics if multiple articles are requested
+    topic_list = []
+    if NUMBER_OF_ARTICLES > 1 and topic_generator_chain:
+        logger.info(f"🧠 Agent 5 (Topic Generator): Creating {NUMBER_OF_ARTICLES} distinct sub-topics for '{SEARCH_QUERY}'...")
+        try:
+            topic_response = topic_generator_chain.invoke({
+                "search_query": SEARCH_QUERY, 
+                "number_of_articles": NUMBER_OF_ARTICLES
+            }).content
+            topic_clean = topic_response.strip().removeprefix("```json").removesuffix("```").strip()
+            topic_list = json.loads(topic_clean)
+            if not isinstance(topic_list, list) or len(topic_list) == 0:
+                raise ValueError("Topic generator did not return a valid list.")
+            logger.info(f"✨ Distinct topics generated: {topic_list}")
+        except Exception as e:
+            logger.error(f"Topic Generator failed: {e}. Falling back to default query logic.")
+            topic_list = [f"{SEARCH_QUERY} update {i+1}" for i in range(NUMBER_OF_ARTICLES)]
+    else:
+        topic_list = [SEARCH_QUERY]
+
     for i in range(NUMBER_OF_ARTICLES):
         logger.info(f"\n--- Generating Article {i+1} of {NUMBER_OF_ARTICLES} ---")
         
-        # Optionally tweak query for multiple articles to get variety
-        current_query = f"{SEARCH_QUERY} update {i+1}" if NUMBER_OF_ARTICLES > 1 else SEARCH_QUERY
+        # Get the specific query for this iteration
+        current_query = topic_list[i] if i < len(topic_list) else f"{SEARCH_QUERY} update {i+1}"
         
         logger.info(f"🔍 Agent 1 (Researcher): Searching for: '{current_query}'")
         live_data = search_latest_tech_news(current_query)
