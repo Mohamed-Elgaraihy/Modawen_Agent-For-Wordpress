@@ -2,8 +2,8 @@ import os
 import logging
 from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Load environment variables (override=True ensures fresh UI saves are loaded)
+load_dotenv(override=True)
 
 import sys
 # Force UTF-8 encoding for standard output to support emojis in Windows console

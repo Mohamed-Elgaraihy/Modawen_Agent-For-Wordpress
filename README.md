@@ -1,4 +1,4 @@
-# Modawen Agent for WordPress v2.0 🚀
+# Modawen Agent for WordPress v2.1.0 🚀
 
 [![Open Source Love](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badges/)
 ![Python](https://img.shields.io/badge/python-3.8%2B-blue.svg)
@@ -6,7 +6,7 @@
 
 **Modawen Agent for WordPress** is a completely autonomous, AI-powered multi-agent system that researches live trends, writes deep-dive SEO-optimized articles, generates custom featured images, and manages your WordPress site entirely on autopilot.
 
-Version 2.0 introduces **Multi-LLM Support**, a gorgeous **Web Interface**, and a **VPS Autopilot Scheduler**.
+Version 2.1.0 introduces a **Multi-Tab Web Interface**, allowing you to completely configure your system, API keys, and WordPress credentials directly from your browser—no coding required!
 
 ## 🌟 How It Works
 The system uses a **5-Agent Architecture**:
@@ -16,9 +16,10 @@ The system uses a **5-Agent Architecture**:
 4. 🎯 **Metadata & SEO Agent:** Generates an attractive title, creates SEO tags, and intelligently selects the best existing WordPress Category.
 5. 🖼️ **Image Query Agent:** Uses OpenAI (GPT-4) or Pexels to generate the perfect stock photo matching the article.
 
-## ✨ Version 2.0 Features
+## ✨ Features
 - **Multi-LLM Engine:** Run the agents using Google Gemini, OpenAI (GPT-4o), or Anthropic (Claude 3.5).
-- **Streamlit Web UI:** A complete visual dashboard. Edit configurations, toggle AI models, and trigger generation directly from your web browser.
+- **Streamlit Web UI:** A complete multi-tab visual dashboard.
+- **Dynamic Configuration:** You no longer need to edit hidden `.env` files. You can enter all your API keys and WordPress credentials securely from the **System Configuration** tab in the web UI!
 - **VPS Autopilot Scheduler:** Deploy to a Virtual Private Server (VPS), set a time in the Web UI, and let the background worker publish articles daily while you sleep.
 
 ## 📋 Prerequisites
@@ -54,7 +55,13 @@ The system uses a **5-Agent Architecture**:
 
 ## ⚙️ Configuration
 
-Rename the `.env_example` file to `.env` and fill in your credentials:
+There are two ways to configure Modawen:
+
+**Method 1: Web UI (Recommended)**
+Simply run `streamlit run app.py` and open the **System Configuration** tab in your browser. You can type in your WordPress URL, Username, Application Passwords, and API Keys directly into the interface. It will automatically save them to your local system securely!
+
+**Method 2: Manual (For Developers)**
+Rename the `.env_example` file to `.env` and fill in your credentials manually.
 ```env
 GEMINI_API_KEY=your_gemini_api_key
 OPENAI_API_KEY=your_openai_api_key
