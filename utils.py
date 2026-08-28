@@ -68,10 +68,13 @@ def get_openai_image_url(prompt: str) -> str:
             image_item = data["data"][0]
             if "url" in image_item:
                 image_url = image_item["url"]
-                logger.info("Successfully generated image with OpenAI.")
+                logger.info("Successfully generated image with OpenAI (URL format).")
                 return image_url
+            elif "b64_json" in image_item:
+                logger.info("Successfully generated image with OpenAI (Base64 format).")
+                return "b64:" + image_item["b64_json"]
             else:
-                logger.error(f"OpenAI response missing 'url' key. Raw data: {data}")
+                logger.error(f"OpenAI response missing 'url' and 'b64_json' keys. Raw data: {data}")
         else:
             logger.warning(f"OpenAI API returned success but no image data was found. Raw data: {data}")
             
@@ -91,15 +94,20 @@ def upload_image_to_wordpress(image_url: str, title: str) -> int:
         return None
 
     try:
-        # Download image
-        logger.info(f"Downloading image from {image_url}...")
-        img_response = requests.get(image_url, timeout=30)
-        img_response.raise_for_status()
-
+        import base64
         # Create temporary file
         fd, temp_path = tempfile.mkstemp(suffix=".jpg")
+        
         with os.fdopen(fd, 'wb') as f:
-            f.write(img_response.content)
+            if image_url.startswith("b64:"):
+                logger.info("Decoding Base64 image data...")
+                b64_data = image_url.replace("b64:", "", 1)
+                f.write(base64.b64decode(b64_data))
+            else:
+                logger.info(f"Downloading image from {image_url}...")
+                img_response = requests.get(image_url, timeout=30)
+                img_response.raise_for_status()
+                f.write(img_response.content)
 
         # Upload to WordPress
         logger.info("Uploading image to WordPress Media Library...")
