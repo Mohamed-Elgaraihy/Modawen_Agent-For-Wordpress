@@ -31,6 +31,8 @@ WP_USERNAME = os.getenv("WP_USERNAME")
 WP_APP_PASSWORD = os.getenv("WP_APP_PASSWORD")
 PEXELS_API_KEY = os.getenv("PEXELS_API_KEY")
 OPENAI_IMAGE_API_KEY = os.getenv("OPENAI_IMAGE_API_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 
 # Configuration from YAML
 import yaml
@@ -44,6 +46,11 @@ try:
         SEARCH_QUERY = agent_settings.get("search_query", "latest AI software engineering trends news")
         TARGET_LANGUAGE = agent_settings.get("target_language", "Arabic")
         NUMBER_OF_ARTICLES = agent_settings.get("number_of_articles", 1)
+        LLM_PROVIDER = agent_settings.get("llm_provider", "gemini").lower()
+        
+        schedule_settings = yaml_config.get("schedule_settings", {})
+        SCHEDULE_ENABLED = schedule_settings.get("enabled", False)
+        SCHEDULE_TIME = schedule_settings.get("time", "08:00")
 except Exception as e:
     logger.error(f"Failed to load {CONFIG_FILE}: {e}")
     sys.exit(1)
@@ -51,5 +58,10 @@ except Exception as e:
 # Ensure API key is set for LangChain
 if GEMINI_API_KEY:
     os.environ["GEMINI_API_KEY"] = GEMINI_API_KEY
-else:
-    logger.warning("GEMINI_API_KEY is not set. Agents will fail to run.")
+if OPENAI_API_KEY:
+    os.environ["OPENAI_API_KEY"] = OPENAI_API_KEY
+if ANTHROPIC_API_KEY:
+    os.environ["ANTHROPIC_API_KEY"] = ANTHROPIC_API_KEY
+
+if not GEMINI_API_KEY and not OPENAI_API_KEY and not ANTHROPIC_API_KEY:
+    logger.warning("No LLM API keys are set. Agents will fail to run.")

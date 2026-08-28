@@ -1,41 +1,34 @@
-# Modawen Agent for WordPress
+# Modawen Agent for WordPress v2.0 🚀
 
-![License](https://img.shields.io/badge/license-MIT-blue.svg)
+[![Open Source Love](https://badges.frapsoft.com/os/v1/open-source.svg?v=103)](https://github.com/ellerbrock/open-source-badges/)
 ![Python](https://img.shields.io/badge/python-3.8%2B-blue.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
-**Modawen Agent for WordPress** is an open-source, AI-powered multi-agent system that researches live trends, writes high-quality articles, generates featured images (via GPT Image 2 or Pexels), intelligently manages SEO metadata, and publishes automatically to WordPress.
+**Modawen Agent for WordPress** is a completely autonomous, AI-powered multi-agent system that researches live trends, writes deep-dive SEO-optimized articles, generates custom featured images, and manages your WordPress site entirely on autopilot.
 
-Created by **Mohamed Elgaraihy** ([@EngMoElgaraihy on X](https://x.com/EngMoElgaraihy)).
+Version 2.0 introduces **Multi-LLM Support**, a gorgeous **Web Interface**, and a **VPS Autopilot Scheduler**.
 
-## 🌟 Features
+## 🌟 How It Works
+The system uses a **5-Agent Architecture**:
+1. 🧠 **Topic Generator Agent:** Breaks down your broad niche into a randomized pool of highly specific search queries, ensuring zero duplicate content.
+2. 🔍 **Technology Researcher Agent:** Scrapes live Google Search results to extract real-world facts (No AI hallucinations).
+3. ✍️ **Content Writer Agent:** Transforms the research into a massive (1,200+ words), SEO-friendly article in your chosen language, embedding high-value outbound HTML links.
+4. 🎯 **Metadata & SEO Agent:** Generates an attractive title, creates SEO tags, and intelligently selects the best existing WordPress Category.
+5. 🖼️ **Image Query Agent:** Uses OpenAI (GPT-4) or Pexels to generate the perfect stock photo matching the article.
 
-- **Live Research:** Uses Google Search dynamically to gather the latest news and avoid AI hallucinations.
-- **5-Agent AI System:**
-  - 🧠 **Topic Generator Agent:** Breaks down your broad niche into highly specific, unique search queries to ensure you never publish repetitive content.
-  - 🔍 **Technology Researcher Agent:** Analyzes live search results to extract key insights and facts.
-  - ✍️ **Content Writer Agent:** Transforms the research into a natural, SEO-friendly, and professional article in your chosen language, embedding high-value outbound links.
-  - 🎯 **Metadata & SEO Agent:** Generates an attractive title, creates SEO tags, and intelligently selects the best existing WordPress Category (or creates a new one).
-  - 🖼️ **Image Query Agent:** Generates an English query to find the perfect stock photo or AI image.
-- **Dynamic Configuration:** Easily change search topics, target languages, and run loops for multiple articles via `config.yaml`.
-- **Customizable Prompts:** All AI instructions are stored in `prompts.yaml` so you can tweak the agent personalities without touching the code!
-- **Featured Image Integration:** Automatically fetches a high-quality free stock photo from Pexels OR generates a custom image via OpenAI GPT Image 2, and uploads it to the WordPress Media Library.
-- **WordPress Integration:** Automatically assigns categories/tags and publishes the generated article directly to your WordPress site as a Draft.
+## ✨ Version 2.0 Features
+- **Multi-LLM Engine:** Run the agents using Google Gemini, OpenAI (GPT-4o), or Anthropic (Claude 3.5).
+- **Streamlit Web UI:** A complete visual dashboard. Edit configurations, toggle AI models, and trigger generation directly from your web browser.
+- **VPS Autopilot Scheduler:** Deploy to a Virtual Private Server (VPS), set a time in the Web UI, and let the background worker publish articles daily while you sleep.
 
 ## 📋 Prerequisites
-
-Before you begin, ensure you have met the following requirements:
-- Python 3.8+ installed on your machine.
+- Python 3.8+
 - A WordPress website.
-- A **Google Gemini API Key**. You can get one from [Google AI Studio](https://aistudio.google.com/).
-- **(Optional) Image Generation APIs:**
-  - A **Pexels API Key** for free stock photos. Get it at [Pexels API](https://www.pexels.com/api/).
-  - An **OpenAI API Key** for GPT Image 2 AI image generation.
-  - *Note: If you provide neither, the script safely generates text-only articles. If you provide both, the script will ask you which one to use when it runs!*
-- A **WordPress Application Password**.
-  - Go to your WordPress Admin Dashboard.
-  - Navigate to **Users** -> **Profile**.
-  - Scroll down to **Application Passwords**.
-  - Enter a name (e.g., "Modawen Agent") and click **Add New Application Password**. Save this password.
+- A **WordPress Application Password** (See Configuration below).
+- At least ONE of the following API keys:
+  - Google Gemini API Key
+  - OpenAI API Key
+  - Anthropic API Key
 
 ## 🚀 Installation
 
@@ -45,12 +38,12 @@ Before you begin, ensure you have met the following requirements:
    cd Modawen_Agent-For-Wordpress
    ```
 
-2. **Create a virtual environment (Recommended):**
+2. **Create a virtual environment:**
    ```bash
    python -m venv venv
-   # On Windows:
+   # Windows:
    venv\Scripts\activate
-   # On macOS/Linux:
+   # macOS/Linux:
    source venv/bin/activate
    ```
 
@@ -59,49 +52,52 @@ Before you begin, ensure you have met the following requirements:
    pip install -r requirements.txt
    ```
 
-4. **Configuration:**
-   Rename the `.env_example` file to `.env` and fill in your credentials:
-   ```env
-   GEMINI_API_KEY=your_gemini_api_key_here
-   WP_URL=https://your-wordpress-site.com
-   WP_USERNAME=your_wp_username
-   WP_APP_PASSWORD=your_wp_application_password_here
-   PEXELS_API_KEY=your_pexels_api_key_here
-   OPENAI_IMAGE_API_KEY=your_openai_api_key_here
-   ```
-   > ⚠️ **IMPORTANT: How to get `WP_APP_PASSWORD`**
-   > You CANNOT use your normal WordPress login password here. You must create an Application Password:
-   > 1. Log in to your WordPress Admin Dashboard.
-   > 2. Go to **Users** -> **Profile**.
-   > 3. Scroll all the way down to **Application Passwords**.
-   > 4. Enter a New Application Password Name (e.g., "Modawen Agent") and click **Add New Application Password**.
-   > 5. Copy the generated password (it looks like `xxxx xxxx xxxx xxxx xxxx xxxx`) and paste it into your `.env` file.
+## ⚙️ Configuration
 
-5. **Advanced Settings (Optional):**
-   - Edit `config.yaml` to change the search query, target language, and number of articles to generate.
-   - Edit `prompts.yaml` to tweak the AI's behavior and writing style.
+Rename the `.env_example` file to `.env` and fill in your credentials:
+```env
+GEMINI_API_KEY=your_gemini_api_key
+OPENAI_API_KEY=your_openai_api_key
+ANTHROPIC_API_KEY=your_anthropic_api_key
+WP_URL=https://your-wordpress-site.com
+WP_USERNAME=your_wp_username
+WP_APP_PASSWORD=your_wp_application_password
+OPENAI_IMAGE_API_KEY=your_openai_image_key
+PEXELS_API_KEY=your_pexels_key
+```
+
+> ⚠️ **How to get `WP_APP_PASSWORD`**
+> 1. Log in to your WordPress Admin Dashboard.
+> 2. Go to **Users** -> **Profile**.
+> 3. Scroll down to **Application Passwords**.
+> 4. Enter a name (e.g., "Modawen") and click **Add New Application Password**.
 
 ## 💻 Usage
 
-Run the main script to start the agent pipeline:
+Modawen v2.0 offers three powerful ways to run your AI factory:
 
+### 1. Web UI Mode (Recommended)
+Launch the visual dashboard in your browser to configure settings and trigger agents manually.
+```bash
+streamlit run app.py
+```
+
+### 2. Autopilot Mode (VPS / Server)
+Leave this script running in the background on your server to automatically publish articles at your scheduled time. (Configure the time via the Web UI).
+```bash
+python scheduler.py
+```
+
+### 3. CLI Mode (Developers)
+Run the pipeline directly from your terminal.
 ```bash
 python main.py
 ```
 
-The script will output its progress in the terminal. Once finished, check your WordPress dashboard under **Posts** -> **All Posts** to find your new draft!
+## 🤝 Contributions & Author
 
-## 🤝 Contributing
-
-Contributions, issues, and feature requests are welcome!
-Feel free to check [issues page](https://github.com/Mohamed-Elgaraihy/Modawen_Agent-For-Wordpress/issues).
-
-## 👨‍💻 Author
-
-**Mohamed Elgaraihy**
+Created by **Mohamed Elgaraihy**
 * X / Twitter: [@EngMoElgaraihy](https://x.com/EngMoElgaraihy)
 * GitHub: [@Mohamed-Elgaraihy](https://github.com/Mohamed-Elgaraihy)
 
-## 📝 License
-
-This project is open-source and available under the [MIT License](LICENSE).
+This project is open-source. We welcome pull requests, feature requests, and bug reports! If you use this tool, please consider starring the repository! ⭐

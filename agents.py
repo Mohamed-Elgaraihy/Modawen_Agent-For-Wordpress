@@ -1,18 +1,32 @@
 from langchain_google_genai import ChatGoogleGenerativeAI
+from langchain_openai import ChatOpenAI
+from langchain_anthropic import ChatAnthropic
 from langchain_core.prompts import ChatPromptTemplate
 from googlesearch import search
 import yaml
 import sys
-from config import GEMINI_API_KEY, TARGET_LANGUAGE, logger
+from config import GEMINI_API_KEY, OPENAI_API_KEY, ANTHROPIC_API_KEY, TARGET_LANGUAGE, LLM_PROVIDER, logger
 
-# Initialize the LLM
+# Initialize the LLM dynamically based on configuration
 try:
-    llm = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash",
-        google_api_key=GEMINI_API_KEY
-    )
+    if LLM_PROVIDER == "openai":
+        if not OPENAI_API_KEY:
+            raise ValueError("OPENAI_API_KEY is not set.")
+        llm = ChatOpenAI(model="gpt-4o", openai_api_key=OPENAI_API_KEY)
+        logger.info("Successfully initialized OpenAI (GPT-4o) LLM.")
+    elif LLM_PROVIDER == "anthropic":
+        if not ANTHROPIC_API_KEY:
+            raise ValueError("ANTHROPIC_API_KEY is not set.")
+        llm = ChatAnthropic(model="claude-3-5-sonnet-20240620", anthropic_api_key=ANTHROPIC_API_KEY)
+        logger.info("Successfully initialized Anthropic (Claude 3.5) LLM.")
+    else:
+        # Default to Gemini
+        if not GEMINI_API_KEY:
+            raise ValueError("GEMINI_API_KEY is not set.")
+        llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", google_api_key=GEMINI_API_KEY)
+        logger.info("Successfully initialized Google Gemini LLM.")
 except Exception as e:
-    logger.error(f"Failed to initialize Gemini LLM: {e}")
+    logger.error(f"Failed to initialize LLM '{LLM_PROVIDER}': {e}")
     llm = None
 
 # Load Prompts from YAML

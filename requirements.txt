@@ -3,3 +3,7 @@ langchain-google-genai
 googlesearch-python
 python-dotenv
 pyyaml
+langchain-openai
+langchain-anthropic
+streamlit
+schedule
