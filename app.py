@@ -84,6 +84,7 @@ with tab1:
                 def __init__(self, widget):
                     self.widget = widget
                     self.text = ""
+                    self.encoding = "utf-8"
                 def write(self, s):
                     if s.strip():
                         self.text += s + "\\n"
