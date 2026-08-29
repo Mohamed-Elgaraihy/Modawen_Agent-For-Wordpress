@@ -47,6 +47,7 @@ try:
         TARGET_LANGUAGE = agent_settings.get("target_language", "Arabic")
         NUMBER_OF_ARTICLES = agent_settings.get("number_of_articles", 1)
         LLM_PROVIDER = agent_settings.get("llm_provider", "gemini").lower()
+        IMAGE_PROVIDER = agent_settings.get("image_provider", "openai").lower()
         
         schedule_settings = yaml_config.get("schedule_settings", {})
         SCHEDULE_ENABLED = schedule_settings.get("enabled", False)

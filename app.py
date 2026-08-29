@@ -133,11 +133,16 @@ with tab2:
         num_articles = st.number_input("Number of Articles per run", min_value=1, max_value=20, value=agent_settings.get("number_of_articles", 1))
         
         st.markdown("---")
-        st.write("**LLM Provider Selection**")
+        st.write("**AI Model Configuration**")
         providers = ["gemini", "openai", "anthropic"]
         curr_prov = agent_settings.get("llm_provider", "gemini").lower()
         curr_prov_idx = providers.index(curr_prov) if curr_prov in providers else 0
-        llm_provider = st.selectbox("Which AI should write your articles?", providers, index=curr_prov_idx)
+        llm_provider = st.selectbox("Text Generator (Articles)", providers, index=curr_prov_idx)
+        
+        img_providers = ["openai", "pexels"]
+        curr_img = agent_settings.get("image_provider", "openai").lower()
+        curr_img_idx = img_providers.index(curr_img) if curr_img in img_providers else 0
+        image_provider = st.selectbox("Image Generator (Featured Image)", img_providers, index=curr_img_idx)
         
         st.markdown("---")
         st.write("**VPS Autopilot (Daily Scheduler)**")
@@ -159,6 +164,7 @@ with tab2:
             config_data["agent_settings"]["target_language"] = target_language
             config_data["agent_settings"]["number_of_articles"] = num_articles
             config_data["agent_settings"]["llm_provider"] = llm_provider
+            config_data["agent_settings"]["image_provider"] = image_provider
             
             config_data["schedule_settings"]["enabled"] = schedule_enabled
             if schedule_time:

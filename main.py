@@ -124,17 +124,13 @@ def run_agent_pipeline():
         selected_api = None
 
         if use_pexels and use_openai:
-            print("\n✨ Both Pexels and OpenAI APIs are available for Featured Images.")
-            while True:
-                choice = input("Which one do you want to use? (Type '1' for Pexels, '2' for OpenAI): ").strip()
-                if choice == '1':
-                    selected_api = "pexels"
-                    break
-                elif choice == '2':
-                    selected_api = "openai"
-                    break
-                else:
-                    print("Invalid choice. Please enter 1 or 2.")
+            from config import IMAGE_PROVIDER
+            if IMAGE_PROVIDER == 'pexels':
+                selected_api = "pexels"
+                logger.info("Using Pexels for Featured Image (configured in Settings).")
+            else:
+                selected_api = "openai"
+                logger.info("Using OpenAI for Featured Image (configured in Settings).")
         elif use_pexels:
             selected_api = "pexels"
         elif use_openai:
