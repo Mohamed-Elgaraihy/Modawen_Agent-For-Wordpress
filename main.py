@@ -63,6 +63,8 @@ def run_agent_pipeline():
         logger.info("💡 Agent 1: Analyzing search results and extracting the main trend...")
         try:
             trend_summary = researcher_chain.invoke({"search_results": live_data}).content
+            # FORCE the URLs into the summary so the writer agent absolutely uses them
+            trend_summary += "\n\nRAW SOURCE URLS FOR LINKING (YOU MUST USE THESE):\n" + live_data
         except Exception as e:
             logger.error(f"Researcher agent failed: {e}")
             continue

@@ -214,8 +214,10 @@ with tab3:
                 # Force reload of configs
                 import importlib
                 import config
+                import utils
                 import agents
                 importlib.reload(config)
+                importlib.reload(utils)
                 importlib.reload(agents)
                 importlib.reload(main)
                 

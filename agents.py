@@ -88,17 +88,20 @@ def search_latest_tech_news(query: str) -> str:
 # ==========================================
 # Agent Definitions
 # ==========================================
+import datetime
+CURRENT_YEAR = datetime.datetime.now().year
+YEAR_INSTRUCTION = f"\n\nCRITICAL CONTEXT: The current year is {CURRENT_YEAR}. Ensure your knowledge is up to date and do NOT write about outdated trends from 2023 or 2024. IMPORTANT: Do NOT forcefully hardcode '{CURRENT_YEAR}' into every topic or paragraph. Keep the writing natural and evergreen."
 
 # Agent 1: Technology Researcher
 researcher_prompt = ChatPromptTemplate.from_messages([
-    ("system", prompts_config.get("researcher", "You are a researcher.")),
+    ("system", prompts_config.get("researcher", "You are a researcher.") + YEAR_INSTRUCTION),
     ("human", "Live search results:\n{search_results}")
 ])
 researcher_chain = researcher_prompt | llm if llm else None
 
 # Agent 2: Content Writer
 writer_prompt = ChatPromptTemplate.from_messages([
-    ("system", prompts_config.get("writer", "You are a writer.").replace("{target_language}", TARGET_LANGUAGE)),
+    ("system", prompts_config.get("writer", "You are a writer.").replace("{target_language}", TARGET_LANGUAGE) + YEAR_INSTRUCTION),
     ("human", "Research summary:\n{trend_summary}\n\nWrite the complete article in {target_language} following all requirements above.".replace("{target_language}", TARGET_LANGUAGE))
 ])
 writer_chain = writer_prompt | llm if llm else None
@@ -121,7 +124,7 @@ image_query_chain = image_query_prompt | llm if llm else None
 
 # Agent 5: Topic Generator (Diversification)
 topic_generator_prompt = ChatPromptTemplate.from_messages([
-    ("system", prompts_config.get("topic_generator", "You are a content strategist.")),
+    ("system", prompts_config.get("topic_generator", "You are a content strategist.") + YEAR_INSTRUCTION),
     ("human", "MAIN TOPIC: {search_query}\nNUMBER OF TOPICS TO GENERATE: {number_of_articles}")
 ])
 topic_generator_chain = topic_generator_prompt | llm if llm else None

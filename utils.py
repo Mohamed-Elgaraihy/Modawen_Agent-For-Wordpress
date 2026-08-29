@@ -23,14 +23,16 @@ def get_pexels_image_url(query: str) -> str:
 
     logger.info(f"Searching Pexels for image related to: '{query}'")
     headers = {"Authorization": PEXELS_API_KEY}
-    url = f"https://api.pexels.com/v1/search?query={query}&per_page=1"
+    url = f"https://api.pexels.com/v1/search?query={query}&per_page=15"
     
     try:
         response = requests.get(url, headers=headers, timeout=15)
         response.raise_for_status()
         data = response.json()
         if data.get("photos") and len(data["photos"]) > 0:
-            image_url = data["photos"][0]["src"]["large"]
+            import random
+            selected_photo = random.choice(data["photos"])
+            image_url = selected_photo["src"]["large"]
             logger.info(f"Found Pexels image: {image_url}")
             return image_url
         else:
