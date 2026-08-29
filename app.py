@@ -58,70 +58,49 @@ env_dict = dotenv_values(ENV_FILE) if os.path.exists(ENV_FILE) else {}
 st.markdown('<div class="main-header">🤖 Modawen Agent Control Panel</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">Automate your WordPress content generation with AI.</div>', unsafe_allow_html=True)
 
-# Define Tabs
-tab1, tab2, tab3 = st.tabs(["🚀 Execution Engine", "⚙️ Content Strategy", "🔐 System Configuration"])
+# Define Tabs in the new logical order
+tab1, tab2, tab3 = st.tabs(["🔐 Step 1: System Configuration", "⚙️ Step 2: Content Strategy", "🚀 Step 3: Execution Engine"])
 
 # ==========================================
-# TAB 1: Execution Engine
+# TAB 1: System Configuration
 # ==========================================
 with tab1:
-    st.subheader("Run Modawen Agent")
-    st.markdown("Trigger the 5-Agent pipeline to research, write, and publish to your WordPress site.")
+    st.subheader("Step 1: System Credentials")
+    st.markdown("Securely manage your WordPress connection and API keys. These are saved to your local `.env` file.")
     
-    colA, colB = st.columns([1, 2])
-    with colA:
-        st.info(f"**Target Site:** {env_dict.get('WP_URL', 'Not Configured')}")
-        st.info(f"**AI Model:** {agent_settings.get('llm_provider', 'gemini').upper()}")
-        run_btn = st.button("Trigger Agents Now")
+    with st.form("env_form"):
+        st.markdown("#### WordPress Settings")
+        wp_url = st.text_input("WordPress URL (e.g. https://yoursite.com)", value=env_dict.get("WP_URL", ""))
+        wp_user = st.text_input("WordPress Username", value=env_dict.get("WP_USERNAME", ""))
+        wp_pass = st.text_input("WordPress Application Password", value=env_dict.get("WP_APP_PASSWORD", ""), type="password")
         
-    with colB:
-        st.write("Live Output Terminal:")
-        log_container = st.empty()
+        st.markdown("#### API Keys")
+        gemini_key = st.text_input("Google Gemini API Key", value=env_dict.get("GEMINI_API_KEY", ""), type="password")
+        openai_key = st.text_input("OpenAI API Key (GPT-4 / DALL-E)", value=env_dict.get("OPENAI_API_KEY", ""), type="password")
+        anthropic_key = st.text_input("Anthropic API Key (Claude)", value=env_dict.get("ANTHROPIC_API_KEY", ""), type="password")
+        pexels_key = st.text_input("Pexels API Key", value=env_dict.get("PEXELS_API_KEY", ""), type="password")
         
-        if run_btn:
-            log_container.info("Initializing Agent Pipeline... Please wait.")
-            class StreamlitRedirect:
-                def __init__(self, widget):
-                    self.widget = widget
-                    self.text = ""
-                    self.encoding = "utf-8"
-                def write(self, s):
-                    if s.strip():
-                        self.text += s + "\\n"
-                        lines = self.text.split('\\n')
-                        if len(lines) > 100: self.text = '\\n'.join(lines[-100:])
-                        self.widget.code(self.text, language="bash")
-                def flush(self): pass
-                    
-            output_widget = st.empty()
-            st_redirect = StreamlitRedirect(output_widget)
+        if st.form_submit_button("Save System Configuration"):
+            # Ensure .env exists
+            if not os.path.exists(ENV_FILE):
+                open(ENV_FILE, 'w').close()
+                
+            set_key(ENV_FILE, "WP_URL", wp_url)
+            set_key(ENV_FILE, "WP_USERNAME", wp_user)
+            set_key(ENV_FILE, "WP_APP_PASSWORD", wp_pass)
+            set_key(ENV_FILE, "GEMINI_API_KEY", gemini_key)
+            set_key(ENV_FILE, "OPENAI_API_KEY", openai_key)
+            set_key(ENV_FILE, "ANTHROPIC_API_KEY", anthropic_key)
+            set_key(ENV_FILE, "PEXELS_API_KEY", pexels_key)
             
-            try:
-                import main
-                old_stdout = sys.stdout
-                sys.stdout = st_redirect
-                
-                # Force reload of configs
-                import importlib
-                import config
-                import agents
-                importlib.reload(config)
-                importlib.reload(agents)
-                importlib.reload(main)
-                
-                main.run_agent_pipeline()
-                
-                sys.stdout = old_stdout
-                st.success("🎉 Pipeline execution completed successfully! Check your WordPress drafts.")
-            except Exception as e:
-                sys.stdout = old_stdout
-                st.error(f"Execution failed: {e}")
+            st.success("Credentials securely saved to .env!")
+            st.rerun()
 
 # ==========================================
 # TAB 2: Content Strategy
 # ==========================================
 with tab2:
-    st.subheader("Content & AI Strategy")
+    st.subheader("Step 2: Content & AI Strategy")
     with st.form("strategy_form"):
         search_query = st.text_input("Search Topic", value=agent_settings.get("search_query", "latest AI trends"))
         
@@ -185,39 +164,60 @@ with tab2:
         st.warning(f"⚠️ You selected **{curr_llm.upper()}**, but the API key is missing! Please configure it in the **System Configuration** tab.")
 
 # ==========================================
-# TAB 3: System Configuration
+# TAB 3: Execution Engine
 # ==========================================
 with tab3:
-    st.subheader("System Credentials")
-    st.markdown("Securely manage your WordPress connection and API keys. These are saved to your local `.env` file.")
+    st.subheader("Step 3: Run Modawen Agent")
+    st.markdown("Trigger the 5-Agent pipeline to research, write, and publish to your WordPress site.")
     
-    with st.form("env_form"):
-        st.markdown("#### WordPress Settings")
-        wp_url = st.text_input("WordPress URL (e.g. https://yoursite.com)", value=env_dict.get("WP_URL", ""))
-        wp_user = st.text_input("WordPress Username", value=env_dict.get("WP_USERNAME", ""))
-        wp_pass = st.text_input("WordPress Application Password", value=env_dict.get("WP_APP_PASSWORD", ""), type="password")
+    colA, colB = st.columns([1, 2])
+    with colA:
+        st.info(f"**Target Site:** {env_dict.get('WP_URL', 'Not Configured')}")
+        st.info(f"**AI Model:** {agent_settings.get('llm_provider', 'gemini').upper()}")
+        run_btn = st.button("Trigger Agents Now")
         
-        st.markdown("#### API Keys")
-        gemini_key = st.text_input("Google Gemini API Key", value=env_dict.get("GEMINI_API_KEY", ""), type="password")
-        openai_key = st.text_input("OpenAI API Key (GPT-4 / DALL-E)", value=env_dict.get("OPENAI_API_KEY", ""), type="password")
-        anthropic_key = st.text_input("Anthropic API Key (Claude)", value=env_dict.get("ANTHROPIC_API_KEY", ""), type="password")
-        pexels_key = st.text_input("Pexels API Key", value=env_dict.get("PEXELS_API_KEY", ""), type="password")
+    with colB:
+        st.write("Live Output Terminal:")
+        log_container = st.empty()
         
-        if st.form_submit_button("Save System Configuration"):
-            # Ensure .env exists
-            if not os.path.exists(ENV_FILE):
-                open(ENV_FILE, 'w').close()
-                
-            set_key(ENV_FILE, "WP_URL", wp_url)
-            set_key(ENV_FILE, "WP_USERNAME", wp_user)
-            set_key(ENV_FILE, "WP_APP_PASSWORD", wp_pass)
-            set_key(ENV_FILE, "GEMINI_API_KEY", gemini_key)
-            set_key(ENV_FILE, "OPENAI_API_KEY", openai_key)
-            set_key(ENV_FILE, "ANTHROPIC_API_KEY", anthropic_key)
-            set_key(ENV_FILE, "PEXELS_API_KEY", pexels_key)
+        if run_btn:
+            log_container.info("Initializing Agent Pipeline... Please wait.")
+            class StreamlitRedirect:
+                def __init__(self, widget):
+                    self.widget = widget
+                    self.text = ""
+                    self.encoding = "utf-8"
+                def write(self, s):
+                    if s.strip():
+                        self.text += s + "\\n"
+                        lines = self.text.split('\\n')
+                        if len(lines) > 100: self.text = '\\n'.join(lines[-100:])
+                        self.widget.code(self.text, language="bash")
+                def flush(self): pass
+                    
+            output_widget = st.empty()
+            st_redirect = StreamlitRedirect(output_widget)
             
-            st.success("Credentials securely saved to .env!")
-            st.rerun()
+            try:
+                import main
+                old_stdout = sys.stdout
+                sys.stdout = st_redirect
+                
+                # Force reload of configs
+                import importlib
+                import config
+                import agents
+                importlib.reload(config)
+                importlib.reload(agents)
+                importlib.reload(main)
+                
+                main.run_agent_pipeline()
+                
+                sys.stdout = old_stdout
+                st.success("🎉 Pipeline execution completed successfully! Check your WordPress drafts.")
+            except Exception as e:
+                sys.stdout = old_stdout
+                st.error(f"Execution failed: {e}")
 
 st.markdown("---")
-st.markdown("Modawen Agent v2.1.0 - Developed by Mohamed Elgaraihy")
+st.markdown("Modawen Agent v2.1.3 - Developed by Mohamed Elgaraihy")
