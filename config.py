@@ -48,6 +48,7 @@ try:
         NUMBER_OF_ARTICLES = agent_settings.get("number_of_articles", 1)
         LLM_PROVIDER = agent_settings.get("llm_provider", "gemini").lower()
         IMAGE_PROVIDER = agent_settings.get("image_provider", "openai").lower()
+        POST_STATUS = agent_settings.get("post_status", "draft").lower()
         
         schedule_settings = yaml_config.get("schedule_settings", {})
         SCHEDULE_ENABLED = schedule_settings.get("enabled", False)

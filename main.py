@@ -157,10 +157,12 @@ def run_agent_pipeline():
         elif selected_api:
             logger.warning("Image Query Agent not initialized. Cannot fetch image.")
 
-        logger.info("🚀 Publishing the article as a WordPress draft...")
+        from config import POST_STATUS
+        logger.info(f"🚀 Pushing the article to WordPress as '{POST_STATUS}'...")
         result = publish_to_wordpress(
             title=article_title, 
             content=article_content, 
+            status=POST_STATUS,
             featured_media_id=featured_media_id,
             category_ids=category_ids,
             tag_ids=tag_ids

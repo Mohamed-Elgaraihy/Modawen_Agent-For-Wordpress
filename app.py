@@ -124,6 +124,13 @@ with tab2:
         image_provider = st.selectbox("Image Generator (Featured Image)", img_providers, index=curr_img_idx)
         
         st.markdown("---")
+        st.write("**WordPress Publishing Strategy**")
+        post_statuses = ["draft", "publish"]
+        curr_status = agent_settings.get("post_status", "draft").lower()
+        curr_status_idx = post_statuses.index(curr_status) if curr_status in post_statuses else 0
+        post_status = st.selectbox("Post Status", post_statuses, index=curr_status_idx, help="Should the article be published immediately or saved as a draft for review?")
+        
+        st.markdown("---")
         st.write("**VPS Autopilot (Daily Scheduler)**")
         schedule_enabled = st.checkbox("Enable Daily Scheduler", value=schedule_settings.get("enabled", False))
         
@@ -144,6 +151,7 @@ with tab2:
             config_data["agent_settings"]["number_of_articles"] = num_articles
             config_data["agent_settings"]["llm_provider"] = llm_provider
             config_data["agent_settings"]["image_provider"] = image_provider
+            config_data["agent_settings"]["post_status"] = post_status
             
             config_data["schedule_settings"]["enabled"] = schedule_enabled
             if schedule_time:
