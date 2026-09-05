@@ -11,7 +11,7 @@ ENV_FILE = ".env"
 
 # Setup page configuration
 st.set_page_config(
-    page_title="Modawen Agent v2.1",
+    page_title="Modawen Agent v4.1.1",
     page_icon="🤖",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -55,7 +55,7 @@ schedule_settings = config_data["schedule_settings"]
 env_dict = dotenv_values(ENV_FILE) if os.path.exists(ENV_FILE) else {}
 
 # Header
-st.markdown('<div class="main-header">🤖 Modawen Agent Control Panel</div>', unsafe_allow_html=True)
+st.markdown('<div class="main-header">🤖 Modawen Agent v4.1.1 Control Panel</div>', unsafe_allow_html=True)
 st.markdown('<div class="sub-header">Automate your WordPress content generation with AI.</div>', unsafe_allow_html=True)
 
 # Define Tabs in the new logical order
