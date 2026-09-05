@@ -101,8 +101,8 @@ researcher_chain = researcher_prompt | llm if llm else None
 
 # Agent 2: Content Writer
 writer_prompt = ChatPromptTemplate.from_messages([
-    ("system", prompts_config.get("writer", "You are a writer.").replace("{target_language}", TARGET_LANGUAGE) + YEAR_INSTRUCTION + "\n\nCRITICAL AI RULE: Do NOT output any internal notes, disclaimers, or meta-commentary (e.g. 'Note:', 'I am using this link because...'). Output ONLY the final, polished article text ready for publishing."),
-    ("human", "Research summary:\n{trend_summary}\n\nInternal Links Available:\n{internal_links}\n\nWrite the complete article in {target_language} following all requirements above. You MUST organically embed 1-2 <a> tags linking to the 'Internal Links Available' if they are topically relevant.".replace("{target_language}", TARGET_LANGUAGE))
+    ("system", prompts_config.get("writer", "You are a writer.").replace("{target_language}", TARGET_LANGUAGE) + YEAR_INSTRUCTION + "\n\nCRITICAL AI RULE: Do NOT output any internal notes, disclaimers, or meta-commentary (e.g. 'Note:'). Output ONLY the final article text. If no external source URLs are provided, do NOT invent dummy URLs (e.g. example.com)."),
+    ("human", "Research summary:\n{trend_summary}\n\nInternal Links Available:\n{internal_links}\n\nWrite the complete article in {target_language}. You MUST organically embed 1-2 <a> tags linking to the 'Internal Links Available'. If specific 'RAW SOURCE URLS' are provided, you MUST also naturally embed them as external <a> tags.".replace("{target_language}", TARGET_LANGUAGE))
 ])
 writer_chain = writer_prompt | llm if llm else None
 
@@ -122,9 +122,16 @@ image_query_prompt = ChatPromptTemplate.from_messages([
 ])
 image_query_chain = image_query_prompt | llm if llm else None
 
-# Agent 5: Topic Generator (Diversification)
+# Agent 5: Topic Generator
 topic_generator_prompt = ChatPromptTemplate.from_messages([
-    ("system", prompts_config.get("topic_generator", "You are a content strategist.") + YEAR_INSTRUCTION),
-    ("human", "MAIN TOPIC: {search_query}\nNUMBER OF TOPICS TO GENERATE: {number_of_articles}")
+    ("system", prompts_config.get("topic_generator", "You are a trend analyzer.").replace("{target_language}", TARGET_LANGUAGE) + YEAR_INSTRUCTION),
+    ("human", "Generate a JSON list of exactly {number_of_articles} highly specific, viral sub-topics or unique angles related to the broad topic: '{search_query}'. The topics MUST be in {target_language}. Output ONLY a raw JSON array of strings.".replace("{target_language}", TARGET_LANGUAGE))
 ])
 topic_generator_chain = topic_generator_prompt | llm if llm else None
+
+# Agent 6: Social Media Manager (Twitter/X Thread)
+social_prompt = ChatPromptTemplate.from_messages([
+    ("system", prompts_config.get("social", "You are a viral Social Media Manager. Your job is to read a long-form article and write a highly engaging, viral Twitter (X) thread summarizing the key points to drive traffic to the blog.").replace("{target_language}", TARGET_LANGUAGE) + YEAR_INSTRUCTION + "\n\nCRITICAL AI RULE: Write the thread naturally, use emojis, include relevant hashtags, and end with a call to action linking to the full article. Do NOT write any internal notes or disclaimers."),
+    ("human", "Article Title:\n{title}\n\nArticle Content:\n{content}\n\nWrite a 3-5 tweet viral thread in {target_language} based on this article.".replace("{target_language}", TARGET_LANGUAGE))
+])
+social_chain = social_prompt | llm if llm else None

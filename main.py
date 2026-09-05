@@ -1,10 +1,13 @@
-from config import logger, SEARCH_QUERY, NUMBER_OF_ARTICLES, PEXELS_API_KEY, OPENAI_IMAGE_API_KEY, IMAGE_PROVIDER, POST_STATUS, YOUTUBE_URL
-from agents import search_latest_tech_news, researcher_chain, writer_chain, seo_chain, image_query_chain, topic_generator_chain
+from config import logger, SEARCH_QUERY, NUMBER_OF_ARTICLES, PEXELS_API_KEY, OPENAI_IMAGE_API_KEY, IMAGE_PROVIDER, POST_STATUS, YOUTUBE_URL, WP_URL
+from agents import search_latest_tech_news, researcher_chain, writer_chain, seo_chain, image_query_chain, topic_generator_chain, social_chain
 from utils import publish_to_wordpress, get_pexels_image_url, upload_image_to_wordpress, get_openai_image_url, get_wp_categories, create_wp_category, create_wp_tags, get_recent_wp_posts
+from database import init_db, log_article
 import json
 
 def run_agent_pipeline():
     """Run the complete Modawen agent pipeline."""
+    init_db()
+    
     if not researcher_chain or not writer_chain or not seo_chain:
         logger.error("Agents are not initialized correctly. Please check your GEMINI_API_KEY.")
         return
@@ -50,6 +53,7 @@ def run_agent_pipeline():
     logger.info("🕸️ Fetching recent WordPress posts for internal linking...")
     internal_links = get_recent_wp_posts(limit=15)
 
+    success_count = 0
     # 4. Agent Loop: Create articles
     for i in range(NUMBER_OF_ARTICLES):
         logger.info(f"\n--- Generating Article {i+1} of {NUMBER_OF_ARTICLES} ---")
@@ -100,9 +104,12 @@ def run_agent_pipeline():
             trend_summary = researcher_chain.invoke({"search_results": live_data}).content
             # FORCE the URLs into the summary so the writer agent absolutely uses them
             if YOUTUBE_URL:
-                trend_summary += "\n\nRAW SOURCE URLS FOR LINKING (YOU MUST USE THESE):\n" + YOUTUBE_URL
+                trend_summary += "\n\nRAW SOURCE URLS FOR LINKING:\n" + YOUTUBE_URL
             else:
-                trend_summary += "\n\nRAW SOURCE URLS FOR LINKING (YOU MUST USE THESE):\n" + live_data
+                import re
+                urls = re.findall(r'https?://[^\s\n]+', live_data)
+                if urls:
+                    trend_summary += "\n\nRAW SOURCE URLS FOR LINKING:\n" + "\n".join(urls)
         except Exception as e:
             logger.error(f"Researcher agent failed: {e}")
             continue
@@ -211,8 +218,44 @@ def run_agent_pipeline():
             tag_ids=tag_ids
         )
         
+        # Database Logging
+        wp_post_id = None
+        status = "Failed"
+        if result and "Success" in result:
+            status = "Success"
+            success_count += 1
+            try:
+                import re
+                match = re.search(r"ID:\s*(\d+)", result)
+                if match:
+                    wp_post_id = int(match.group(1))
+            except:
+                pass
+        
+        log_article(topic=current_query, title=article_title, wp_post_id=wp_post_id, status=status)
         logger.info(f"✅ Final result for Article {i+1}: {result}")
         print(f"\n✅ Final result: {result}")
+        
+        # Agent 6: Social Media Manager
+        if status == "Success" and social_chain:
+            logger.info("📱 Agent 6 (Social Media): Generating viral thread...")
+            try:
+                thread_content = social_chain.invoke({
+                    "title": article_title,
+                    "content": article_content
+                }).content
+                
+                wp_url_link = f"{WP_URL.rstrip('/')}/?p={wp_post_id}" if WP_URL and wp_post_id else ""
+                if wp_url_link:
+                    thread_content += f"\n\n🔗 Read the full guide here: {wp_url_link}"
+                
+                with open("latest_thread.txt", "w", encoding="utf-8") as f:
+                    f.write(thread_content)
+                logger.info("📱 Successfully generated Social Media Thread.")
+            except Exception as e:
+                logger.error(f"Social Media Agent failed: {e}")
+                
+    return success_count > 0
 
 if __name__ == "__main__":
     logger.info("Starting Modawen Agent Pipeline...")

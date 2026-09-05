@@ -20,7 +20,8 @@ logging.basicConfig(
     handlers=[
         logging.FileHandler("modawen.log", encoding="utf-8"),
         logging.StreamHandler(sys.stdout)
-    ]
+    ],
+    force=True
 )
 logger = logging.getLogger("Modawen")
 

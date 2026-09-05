@@ -59,7 +59,7 @@ st.markdown('<div class="main-header">🤖 Modawen Agent Control Panel</div>', u
 st.markdown('<div class="sub-header">Automate your WordPress content generation with AI.</div>', unsafe_allow_html=True)
 
 # Define Tabs in the new logical order
-tab1, tab2, tab3 = st.tabs(["🔐 Step 1: System Configuration", "⚙️ Step 2: Content Strategy", "🚀 Step 3: Execution Engine"])
+tab1, tab2, tab3, tab4 = st.tabs(["🔐 Step 1: System Config", "⚙️ Step 2: Content Strategy", "🚀 Step 3: Execution Engine", "📊 Step 4: Analytics Dashboard"])
 
 # ==========================================
 # TAB 1: System Configuration
@@ -224,13 +224,51 @@ with tab3:
                 importlib.reload(agents)
                 importlib.reload(main)
                 
-                main.run_agent_pipeline()
+                is_success = main.run_agent_pipeline()
                 
                 sys.stdout = old_stdout
-                st.success("🎉 Pipeline execution completed successfully! Check your WordPress drafts.")
+                
+                if is_success:
+                    st.success("🎉 Pipeline execution completed successfully! Check your WordPress drafts.")
+                    
+                    # Try to load the latest generated thread if any
+                    import os
+                    if os.path.exists("latest_thread.txt"):
+                        with open("latest_thread.txt", "r", encoding="utf-8") as f:
+                            thread_text = f.read()
+                        st.markdown("### 📱 Generated Viral Social Media Thread")
+                        st.info("Copy and paste this directly to Twitter/X or LinkedIn!")
+                        st.code(thread_text, language="markdown")
+                else:
+                    st.error("❌ Pipeline finished, but NO articles were successfully generated. Please check the terminal logs above for errors (e.g. rate limits or API issues).")
+                    
             except Exception as e:
                 sys.stdout = old_stdout
                 st.error(f"Execution failed: {e}")
+
+# ==========================================
+# TAB 4: Analytics Dashboard
+# ==========================================
+with tab4:
+    st.header("📊 Analytics Dashboard")
+    st.markdown("Track your agent's performance and historical output.")
+    
+    import database
+    stats = database.get_stats()
+    
+    col1, col2, col3 = st.columns(3)
+    col1.metric("Total Generated", stats["total"])
+    col2.metric("Successful Posts", stats["success"])
+    col3.metric("Success Rate", f"{stats['rate']}%")
+    
+    st.markdown("### 📜 Generation History")
+    logs = database.get_recent_logs()
+    if logs:
+        import pandas as pd
+        df = pd.DataFrame(logs)
+        st.dataframe(df, use_container_width=True)
+    else:
+        st.info("No articles generated yet. Run the pipeline to see data!")
 
 st.markdown("---")
 st.markdown("Modawen Agent v2.1.3 - Developed by Mohamed Elgaraihy")

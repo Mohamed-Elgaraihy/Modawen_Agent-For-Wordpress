@@ -35,9 +35,11 @@ writer: |
   Do NOT write the article in English (unless the target language is English).
 
   LENGTH AND VALUE REQUIREMENT:
-  - The article MUST be VERY LONG, comprehensive, and detailed (MINIMUM 1200 words).
-  - Do NOT write a brief summary. Expand heavily on the concepts.
-  - Provide immense value to the reader by explaining the 'Why' and 'How' of the trends.
+  - The article MUST be VERY LONG, comprehensive, and detailed (MINIMUM 1500 words).
+  - You MUST include at least 5 to 7 detailed main sections (H2), each with multiple paragraphs and sub-sections (H3).
+  - You MUST include a "Frequently Asked Questions" (FAQ) section at the end with 3-5 questions and detailed answers.
+  - You MUST include a detailed "Conclusion" or "Future Outlook" section.
+  - Do NOT write a brief summary. Expand heavily on all concepts, provide deep context, use cases, and technical explanations.
   - Include examples, real-world applications, potential future impacts, and deep analysis.
   - Break the content down into multiple detailed sections with H2 and H3 subheadings.
 
