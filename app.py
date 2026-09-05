@@ -103,6 +103,7 @@ with tab2:
     st.subheader("Step 2: Content & AI Strategy")
     with st.form("strategy_form"):
         search_query = st.text_input("Search Topic", value=agent_settings.get("search_query", "latest AI trends"))
+        youtube_url = st.text_input("YouTube Video URL (Optional Override)", value=agent_settings.get("youtube_url", ""), help="If provided, the AI will ignore the Search Topic and generate the article entirely from this video's transcript!")
         
         langs = ["Arabic", "English", "French", "Spanish"]
         curr_lang = agent_settings.get("target_language", "Arabic")
@@ -147,6 +148,7 @@ with tab2:
         
         if st.form_submit_button("Save Strategy"):
             config_data["agent_settings"]["search_query"] = search_query
+            config_data["agent_settings"]["youtube_url"] = youtube_url
             config_data["agent_settings"]["target_language"] = target_language
             config_data["agent_settings"]["number_of_articles"] = num_articles
             config_data["agent_settings"]["llm_provider"] = llm_provider
@@ -206,9 +208,10 @@ with tab3:
             output_widget = st.empty()
             st_redirect = StreamlitRedirect(output_widget)
             
+            old_stdout = sys.stdout
+            
             try:
                 import main
-                old_stdout = sys.stdout
                 sys.stdout = st_redirect
                 
                 # Force reload of configs

@@ -7,3 +7,4 @@ langchain-openai
 langchain-anthropic
 streamlit
 schedule
+youtube-transcript-api

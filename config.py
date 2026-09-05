@@ -44,6 +44,7 @@ try:
         yaml_config = yaml.safe_load(f)
         agent_settings = yaml_config.get("agent_settings", {})
         SEARCH_QUERY = agent_settings.get("search_query", "latest AI software engineering trends news")
+        YOUTUBE_URL = agent_settings.get("youtube_url", "")
         TARGET_LANGUAGE = agent_settings.get("target_language", "Arabic")
         NUMBER_OF_ARTICLES = agent_settings.get("number_of_articles", 1)
         LLM_PROVIDER = agent_settings.get("llm_provider", "gemini").lower()

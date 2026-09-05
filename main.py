@@ -1,6 +1,6 @@
-from config import logger, SEARCH_QUERY, NUMBER_OF_ARTICLES, PEXELS_API_KEY, OPENAI_IMAGE_API_KEY
+from config import logger, SEARCH_QUERY, NUMBER_OF_ARTICLES, PEXELS_API_KEY, OPENAI_IMAGE_API_KEY, IMAGE_PROVIDER, POST_STATUS, YOUTUBE_URL
 from agents import search_latest_tech_news, researcher_chain, writer_chain, seo_chain, image_query_chain, topic_generator_chain
-from utils import publish_to_wordpress, get_pexels_image_url, upload_image_to_wordpress, get_openai_image_url, get_wp_categories, create_wp_category, create_wp_tags
+from utils import publish_to_wordpress, get_pexels_image_url, upload_image_to_wordpress, get_openai_image_url, get_wp_categories, create_wp_category, create_wp_tags, get_recent_wp_posts
 import json
 
 def run_agent_pipeline():
@@ -47,14 +47,49 @@ def run_agent_pipeline():
     else:
         topic_list = [f"{SEARCH_QUERY} update {i+1}" for i in range(NUMBER_OF_ARTICLES)]
 
+    logger.info("🕸️ Fetching recent WordPress posts for internal linking...")
+    internal_links = get_recent_wp_posts(limit=15)
+
+    # 4. Agent Loop: Create articles
     for i in range(NUMBER_OF_ARTICLES):
         logger.info(f"\n--- Generating Article {i+1} of {NUMBER_OF_ARTICLES} ---")
         
         # Get the specific query for this iteration
         current_query = topic_list[i] if i < len(topic_list) else f"{SEARCH_QUERY} update {i+1}"
         
-        logger.info(f"🔍 Agent 1 (Researcher): Searching for: '{current_query}'")
-        live_data = search_latest_tech_news(current_query)
+        if YOUTUBE_URL:
+            logger.info(f"🎥 YouTube Override Detected. Extracting transcript from: {YOUTUBE_URL}")
+            try:
+                from youtube_transcript_api import YouTubeTranscriptApi
+                import re
+                video_id_match = re.search(r"(?:v=|\/)([0-9A-Za-z_-]{11}).*", YOUTUBE_URL)
+                if not video_id_match:
+                    logger.error("Invalid YouTube URL. Skipping.")
+                    continue
+                video_id = video_id_match.group(1)
+                
+                yt_api = YouTubeTranscriptApi()
+                # Get all available transcripts and grab the first one (any language)
+                t_list = yt_api.list(video_id)
+                transcript = next(iter(t_list))
+                transcript_data = transcript.fetch()
+                
+                # Support both dict and object formats depending on the library version
+                texts = []
+                for item in transcript_data:
+                    if isinstance(item, dict):
+                        texts.append(item.get('text', ''))
+                    else:
+                        texts.append(getattr(item, 'text', ''))
+                        
+                transcript_text = " ".join(texts)
+                live_data = transcript_text[:15000] # Truncate to avoid context limit
+            except Exception as e:
+                logger.error(f"Failed to fetch YouTube transcript: {e}")
+                continue
+        else:
+            logger.info(f"🔍 Agent 1 (Researcher): Searching for: '{current_query}'")
+            live_data = search_latest_tech_news(current_query)
         
         if not live_data:
             logger.error("No data retrieved from search. Skipping this article.")
@@ -64,14 +99,20 @@ def run_agent_pipeline():
         try:
             trend_summary = researcher_chain.invoke({"search_results": live_data}).content
             # FORCE the URLs into the summary so the writer agent absolutely uses them
-            trend_summary += "\n\nRAW SOURCE URLS FOR LINKING (YOU MUST USE THESE):\n" + live_data
+            if YOUTUBE_URL:
+                trend_summary += "\n\nRAW SOURCE URLS FOR LINKING (YOU MUST USE THESE):\n" + YOUTUBE_URL
+            else:
+                trend_summary += "\n\nRAW SOURCE URLS FOR LINKING (YOU MUST USE THESE):\n" + live_data
         except Exception as e:
             logger.error(f"Researcher agent failed: {e}")
             continue
 
-        logger.info("🤖 Agent 2 (Writer): Writing the Arabic article...")
+        logger.info("🤖 Agent 2 (Writer): Writing the article...")
         try:
-            article_content = writer_chain.invoke({"trend_summary": trend_summary}).content
+            article_content = writer_chain.invoke({
+                "trend_summary": trend_summary,
+                "internal_links": internal_links
+            }).content
         except Exception as e:
             logger.error(f"Writer agent failed: {e}")
             continue

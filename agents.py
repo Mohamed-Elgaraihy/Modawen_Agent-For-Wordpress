@@ -101,8 +101,8 @@ researcher_chain = researcher_prompt | llm if llm else None
 
 # Agent 2: Content Writer
 writer_prompt = ChatPromptTemplate.from_messages([
-    ("system", prompts_config.get("writer", "You are a writer.").replace("{target_language}", TARGET_LANGUAGE) + YEAR_INSTRUCTION),
-    ("human", "Research summary:\n{trend_summary}\n\nWrite the complete article in {target_language} following all requirements above.".replace("{target_language}", TARGET_LANGUAGE))
+    ("system", prompts_config.get("writer", "You are a writer.").replace("{target_language}", TARGET_LANGUAGE) + YEAR_INSTRUCTION + "\n\nCRITICAL AI RULE: Do NOT output any internal notes, disclaimers, or meta-commentary (e.g. 'Note:', 'I am using this link because...'). Output ONLY the final, polished article text ready for publishing."),
+    ("human", "Research summary:\n{trend_summary}\n\nInternal Links Available:\n{internal_links}\n\nWrite the complete article in {target_language} following all requirements above. You MUST organically embed 1-2 <a> tags linking to the 'Internal Links Available' if they are topically relevant.".replace("{target_language}", TARGET_LANGUAGE))
 ])
 writer_chain = writer_prompt | llm if llm else None
 

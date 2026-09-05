@@ -162,6 +162,37 @@ def get_wp_categories() -> list:
         logger.error(f"Failed to fetch WordPress categories: {e}")
         return []
 
+def get_recent_wp_posts(limit: int = 15) -> str:
+    """Fetch recent published WordPress posts to use for internal linking."""
+    if not WP_URL or not WP_USERNAME or not WP_APP_PASSWORD:
+        return ""
+    
+    api_url = f"{WP_URL.rstrip('/')}/wp-json/wp/v2/posts?status=publish&per_page={limit}"
+    try:
+        response = requests.get(
+            api_url,
+            auth=HTTPBasicAuth(WP_USERNAME, WP_APP_PASSWORD),
+            timeout=15
+        )
+        response.raise_for_status()
+        posts = response.json()
+        
+        if not posts:
+            return ""
+            
+        result = "RECENT WORDPRESS POSTS FOR INTERNAL LINKING:\n"
+        for post in posts:
+            # Clean up HTML entities from title
+            raw_title = post.get("title", {}).get("rendered", "Untitled")
+            import html
+            title = html.unescape(raw_title)
+            link = post.get("link", "")
+            result += f"- Title: {title}\n  URL: {link}\n"
+        return result
+    except Exception as e:
+        logger.error(f"Failed to fetch recent WordPress posts: {e}")
+        return ""
+
 def create_wp_category(name: str) -> int:
     """Create a new category in WordPress and return its ID."""
     if not WP_URL or not WP_USERNAME or not WP_APP_PASSWORD:
