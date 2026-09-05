@@ -17,3 +17,11 @@ ENV/
 
 # Temp files
 *.tmp
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Output files
+latest_thread.txt

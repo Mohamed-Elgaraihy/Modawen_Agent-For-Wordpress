@@ -78,6 +78,7 @@ with tab1:
         gemini_key = st.text_input("Google Gemini API Key", value=env_dict.get("GEMINI_API_KEY", ""), type="password")
         openai_key = st.text_input("OpenAI API Key (GPT-4 / DALL-E)", value=env_dict.get("OPENAI_API_KEY", ""), type="password")
         anthropic_key = st.text_input("Anthropic API Key (Claude)", value=env_dict.get("ANTHROPIC_API_KEY", ""), type="password")
+        deepseek_key = st.text_input("DeepSeek API Key", value=env_dict.get("DEEPSEEK_API_KEY", ""), type="password")
         pexels_key = st.text_input("Pexels API Key", value=env_dict.get("PEXELS_API_KEY", ""), type="password")
         
         if st.form_submit_button("Save System Configuration"):
@@ -91,9 +92,10 @@ with tab1:
             set_key(ENV_FILE, "GEMINI_API_KEY", gemini_key)
             set_key(ENV_FILE, "OPENAI_API_KEY", openai_key)
             set_key(ENV_FILE, "ANTHROPIC_API_KEY", anthropic_key)
+            set_key(ENV_FILE, "DEEPSEEK_API_KEY", deepseek_key)
             set_key(ENV_FILE, "PEXELS_API_KEY", pexels_key)
             
-            st.success("Credentials securely saved to .env!")
+            st.success("✅ System Configuration Saved! (Re-run may be needed to apply new env vars)")
             st.rerun()
 
 # ==========================================
@@ -112,19 +114,37 @@ with tab2:
         
         num_articles = st.number_input("Number of Articles per run", min_value=1, max_value=20, value=agent_settings.get("number_of_articles", 1))
         
-        st.markdown("---")
-        st.write("**AI Model Configuration**")
-        providers = ["gemini", "openai", "anthropic"]
-        curr_prov = agent_settings.get("llm_provider", "gemini").lower()
-        curr_prov_idx = providers.index(curr_prov) if curr_prov in providers else 0
-        llm_provider = st.selectbox("Text Generator (Articles)", providers, index=curr_prov_idx)
+        # --- AI Model Configuration (Dynamic - outside form) ---
+    st.markdown("---")
+    st.write("**AI Model Configuration**")
+    
+    col1, col2 = st.columns(2)
+    providers = ["gemini", "openai", "anthropic", "deepseek"]
+    curr_prov = agent_settings.get("llm_provider", "gemini").lower()
+    curr_prov_idx = providers.index(curr_prov) if curr_prov in providers else 0
+    with col1:
+        llm_provider = st.selectbox("Text Generator (Provider)", providers, index=curr_prov_idx)
+    
+    model_options = {
+        "gemini": ["gemini-3.0-pro", "gemini-3.0-flash", "gemini-2.5-pro", "gemini-2.5-flash"],
+        "openai": ["gpt-6-astra", "gpt-5.6-sol", "gpt-5.6-terra", "o3-pro", "gpt-4o"],
+        "anthropic": ["claude-4-opus-202608", "claude-4-sonnet-202608", "claude-3-5-sonnet-20240620"],
+        "deepseek": ["deepseek-chat-v3", "deepseek-chat-v2.5"]
+    }
+    
+    available_models = model_options.get(llm_provider, ["default-model"])
+    curr_model = agent_settings.get("llm_model", available_models[0])
+    curr_model_idx = available_models.index(curr_model) if curr_model in available_models else 0
+    
+    with col2:
+        llm_model = st.selectbox("Specific Model Version", available_models, index=curr_model_idx)
         
-        img_providers = ["openai", "pexels"]
-        curr_img = agent_settings.get("image_provider", "openai").lower()
-        curr_img_idx = img_providers.index(curr_img) if curr_img in img_providers else 0
-        image_provider = st.selectbox("Image Generator (Featured Image)", img_providers, index=curr_img_idx)
-        
-        st.markdown("---")
+    img_providers = ["openai", "pexels"]
+    curr_img = agent_settings.get("image_provider", "openai").lower()
+    curr_img_idx = img_providers.index(curr_img) if curr_img in img_providers else 0
+    image_provider = st.selectbox("Image Generator (Featured Image)", img_providers, index=curr_img_idx)
+    
+    with st.form("strategy_form_2"):
         st.write("**WordPress Publishing Strategy**")
         post_statuses = ["draft", "publish"]
         curr_status = agent_settings.get("post_status", "draft").lower()
@@ -147,15 +167,16 @@ with tab2:
         schedule_time = st.time_input("Run Time", value=default_time)
         
         if st.form_submit_button("Save Strategy"):
-            config_data["agent_settings"]["search_query"] = search_query
-            config_data["agent_settings"]["youtube_url"] = youtube_url
-            config_data["agent_settings"]["target_language"] = target_language
-            config_data["agent_settings"]["number_of_articles"] = num_articles
-            config_data["agent_settings"]["llm_provider"] = llm_provider
-            config_data["agent_settings"]["image_provider"] = image_provider
-            config_data["agent_settings"]["post_status"] = post_status
+            agent_settings["search_query"] = search_query
+            agent_settings["youtube_url"] = youtube_url
+            agent_settings["target_language"] = target_language
+            agent_settings["number_of_articles"] = num_articles
+            agent_settings["llm_provider"] = llm_provider
+            agent_settings["llm_model"] = llm_model
+            agent_settings["image_provider"] = image_provider
+            agent_settings["post_status"] = post_status
             
-            config_data["schedule_settings"]["enabled"] = schedule_enabled
+            schedule_settings["enabled"] = schedule_enabled
             if schedule_time:
                 config_data["schedule_settings"]["time"] = schedule_time.strftime("%H:%M")
                 

@@ -5,26 +5,31 @@ from langchain_core.prompts import ChatPromptTemplate
 from googlesearch import search
 import yaml
 import sys
-from config import GEMINI_API_KEY, OPENAI_API_KEY, ANTHROPIC_API_KEY, TARGET_LANGUAGE, LLM_PROVIDER, logger
+from config import GEMINI_API_KEY, OPENAI_API_KEY, ANTHROPIC_API_KEY, DEEPSEEK_API_KEY, TARGET_LANGUAGE, LLM_PROVIDER, LLM_MODEL, logger
 
 # Initialize the LLM dynamically based on configuration
 try:
     if LLM_PROVIDER == "openai":
         if not OPENAI_API_KEY:
             raise ValueError("OPENAI_API_KEY is not set.")
-        llm = ChatOpenAI(model="gpt-4o", openai_api_key=OPENAI_API_KEY)
-        logger.info("Successfully initialized OpenAI (GPT-4o) LLM.")
+        llm = ChatOpenAI(model=LLM_MODEL, openai_api_key=OPENAI_API_KEY)
+        logger.info(f"Successfully initialized OpenAI ({LLM_MODEL}) LLM.")
     elif LLM_PROVIDER == "anthropic":
         if not ANTHROPIC_API_KEY:
             raise ValueError("ANTHROPIC_API_KEY is not set.")
-        llm = ChatAnthropic(model="claude-3-5-sonnet-20240620", anthropic_api_key=ANTHROPIC_API_KEY)
-        logger.info("Successfully initialized Anthropic (Claude 3.5) LLM.")
+        llm = ChatAnthropic(model=LLM_MODEL, anthropic_api_key=ANTHROPIC_API_KEY)
+        logger.info(f"Successfully initialized Anthropic ({LLM_MODEL}) LLM.")
+    elif LLM_PROVIDER == "deepseek":
+        if not DEEPSEEK_API_KEY:
+            raise ValueError("DEEPSEEK_API_KEY is not set.")
+        llm = ChatOpenAI(model=LLM_MODEL, openai_api_key=DEEPSEEK_API_KEY, base_url="https://api.deepseek.com/v1")
+        logger.info(f"Successfully initialized DeepSeek ({LLM_MODEL}) LLM.")
     else:
         # Default to Gemini
         if not GEMINI_API_KEY:
             raise ValueError("GEMINI_API_KEY is not set.")
-        llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", google_api_key=GEMINI_API_KEY)
-        logger.info("Successfully initialized Google Gemini LLM.")
+        llm = ChatGoogleGenerativeAI(model=LLM_MODEL, google_api_key=GEMINI_API_KEY)
+        logger.info(f"Successfully initialized Google Gemini ({LLM_MODEL}) LLM.")
 except Exception as e:
     logger.error(f"Failed to initialize LLM '{LLM_PROVIDER}': {e}")
     llm = None

@@ -27,13 +27,14 @@ logger = logging.getLogger("Modawen")
 
 # Credentials
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
+DEEPSEEK_API_KEY = os.getenv("DEEPSEEK_API_KEY")
+PEXELS_API_KEY = os.getenv("PEXELS_API_KEY")
 WP_URL = os.getenv("WP_URL")
 WP_USERNAME = os.getenv("WP_USERNAME")
 WP_APP_PASSWORD = os.getenv("WP_APP_PASSWORD")
-PEXELS_API_KEY = os.getenv("PEXELS_API_KEY")
 OPENAI_IMAGE_API_KEY = os.getenv("OPENAI_IMAGE_API_KEY")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 
 # Configuration from YAML
 import yaml
@@ -49,6 +50,7 @@ try:
         TARGET_LANGUAGE = agent_settings.get("target_language", "Arabic")
         NUMBER_OF_ARTICLES = agent_settings.get("number_of_articles", 1)
         LLM_PROVIDER = agent_settings.get("llm_provider", "gemini").lower()
+        LLM_MODEL = agent_settings.get("llm_model", "gemini-3.0-pro")
         IMAGE_PROVIDER = agent_settings.get("image_provider", "openai").lower()
         POST_STATUS = agent_settings.get("post_status", "draft").lower()
         
